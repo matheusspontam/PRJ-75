@@ -1,8 +1,8 @@
-﻿function [C] = CondLanc6DOF
+function [C] = CondLanc6DOF
 
 D2R = pi/180;
 
-C.Tfim = 2.8;
+C.Tfim = 10;
 
 % Degrau de comando nas superficies para avaliar alfa x delta.
 C.DeltaY = 2*D2R;
