@@ -1,0 +1,246 @@
+\appendix
+\section{Altera\c{c}\~oes Feitas no Simulink e nos C\'odigos}
+
+Este ap\^endice mostra, de forma direta, o que foi alterado no modelo Simulink e nos scripts MATLAB para adaptar o modelo massa-ponto usado em aula aos dois casos pedidos para o MANSUP. A din\^amica do m\'issil n\~ao foi refeita do zero: foram mantidos os blocos principais de massa-ponto, propuls\~ao, arrasto, autodiretor, airframe e guiamento terminal. As mudan\c{c}as ficaram concentradas em quatro pontos:
+
+\begin{itemize}
+    \item configura\c{c}\~ao do voo no plano horizontal \(X\)-\(Z\);
+    \item dados do MANSUP, do autodiretor e dos limites de acelera\c{c}\~ao;
+    \item bloco de guiamento pr\'e-programado;
+    \item l\'ogica de comuta\c{c}\~ao entre guiamento pr\'e-programado e terminal.
+\end{itemize}
+
+\subsection{Vis\~ao Geral da Mudan\c{c}a}
+
+No modelo da aula, a ideia central era usar a estrutura de guiamento j\'a pronta e acionar o guiamento terminal pela l\'ogica original do exemplo. Para este trabalho, a regra de entrada no terminal precisava ser diferente em cada caso:
+
+\begin{itemize}
+    \item no Caso 1, o terminal deve come\c{c}ar apenas quando o alvo estiver a \(20~\text{km}\);
+    \item no Caso 2, o autodiretor est\'a ligado desde o lan\c{c}amento, mas o terminal s\'o pode entrar quando o alvo estiver dentro do cone de \(40^\circ\).
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    block/.style={draw, rounded corners, align=center, minimum width=3.0cm, minimum height=0.9cm},
+    arrow/.style={->, thick},
+    node distance=1.1cm
+]
+\node[block] (base1) {Modelo da aula\\massa-ponto};
+\node[block, right=of base1] (base2) {Guiamento\\pr\'e-programado};
+\node[block, right=of base2] (base3) {Comuta\c{c}\~ao\\original};
+\node[block, right=of base3] (base4) {Guiamento\\terminal};
+\draw[arrow] (base1) -- (base2);
+\draw[arrow] (base2) -- (base3);
+\draw[arrow] (base3) -- (base4);
+
+\node[block, below=1.2cm of base1] (mod1) {Modelo da aula\\mantido};
+\node[block, right=of mod1] (mod2) {Curva\\pr\'e-programada};
+\node[block, right=of mod2] (mod3) {Teste de\\dist\^ancia/cone};
+\node[block, right=of mod3] (mod4) {Guiamento\\terminal};
+\draw[arrow] (mod1) -- (mod2);
+\draw[arrow] (mod2) -- (mod3);
+\draw[arrow] (mod3) -- (mod4);
+\end{tikzpicture}
+\caption{Resumo visual: a planta massa-ponto foi mantida, e a adapta\c{c}\~ao ficou no comando antes do terminal e na condi\c{c}\~ao que libera o terminal.}
+\end{figure}
+
+\subsection{1. O Plano de Simula\c{c}\~ao Foi Fixado como Horizontal}
+
+O enunciado avisava que, nesta atividade, o plano \(X\)-\(Z\) deve ser interpretado como plano horizontal. Portanto, \(Z\) n\~ao representa altitude; representa deslocamento lateral. A altitude de voo de \(10~\text{m}\) foi usada apenas para calcular atmosfera em \texttt{CondLanc.m}.
+
+\begin{lstlisting}[language=Matlab]
+C.X0Tgt = 0;
+C.Z0Tgt = 0;
+C.VxTgt = 0;
+C.VzTgt = 0;
+C.AltL = 10;
+
+if C.Plano == HORIZONTAL
+    C.Z0m = -C.Dist_alvo*sin(C.Ang_apres);
+    C.X0m = -C.Dist_alvo*cos(C.Ang_apres);
+    C.Gama0 = C.Ang_apres;
+    C.g = 0;
+end
+\end{lstlisting}
+
+\textbf{Por que isso foi mudado:} sem essa adapta\c{c}\~ao, o modelo poderia ser interpretado como problema vertical, com gravidade e altitude entrando no mesmo eixo \(Z\). Como a quest\~ao pede uma trajet\'oria horizontal, foi necess\'ario zerar a gravidade no plano simulado e usar \(Z\) como eixo lateral.
+
+\subsection{2. Dados F\'isicos em \texttt{DadosMissil.m}}
+
+Os limites do enunciado foram colocados no arquivo de dados do m\'issil. Assim, o Simulink n\~ao fica com valores soltos dentro dos blocos, e os dois casos usam a mesma defini\c{c}\~ao de sensor, airframe e limite de acelera\c{c}\~ao.
+
+\begin{lstlisting}[language=Matlab]
+D.wn = 0.5*2*pi;
+D.AcelLatMax = 5*g;
+D.ThetaADmax = 40*D2R;
+D.OmegaADmax = 40*D2R;
+D.RSatAD = 500;
+D.REspoleta = 500;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Par\^ametros que entraram no modelo.}
+\begin{tabular}{lll}
+\toprule
+Grandeza & Valor usado & Efeito no Simulink \\
+\midrule
+Altura de voo & \(10~\text{m}\) & atmosfera e velocidade do som \\
+\(\omega_n\) do airframe & \(0{,}5~\text{Hz}\) & resposta lateral do m\'issil \\
+Acelera\c{c}\~ao lateral m\'axima & \(5g\) & satura\c{c}\~ao do comando \\
+Cone do autodiretor & \(40^\circ\) & permiss\~ao para terminal \\
+Velocidade m\'axima do AD & \(40^\circ/\text{s}\) & limite de rastreio \\
+Dist\^ancia de satura\c{c}\~ao & \(500~\text{m}\) & comportamento final do AD \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Por que isso foi mudado:} o terminal n\~ao poderia enxergar nem manobrar de forma ideal. Os limites acima fazem o modelo respeitar o enunciado e impedem que o Caso 2 entre em terminal enquanto o alvo ainda est\'a fora do campo de visada.
+
+\subsection{3. O Bloco de Guiamento Pr\'e-Programado Foi Alterado}
+
+Esta foi a mudan\c{c}a principal no Simulink. O bloco \textit{MANSUP Preprogrammed Guidance} passou a receber:
+
+\begin{itemize}
+    \item \(\Delta x\): dist\^ancia longitudinal entre alvo e m\'issil;
+    \item \(\Delta z\): dist\^ancia lateral entre alvo e m\'issil;
+    \item \(\gamma\): \^angulo atual da trajet\'oria do m\'issil.
+\end{itemize}
+
+A partir desses sinais, o bloco calcula o erro angular entre a linha de visada para o alvo e a dire\c{c}\~ao atual do m\'issil:
+
+\begin{equation}
+    e_\gamma = \tan^{-1}\left(\frac{\Delta z}{\Delta x}\right)-\gamma
+\end{equation}
+
+Depois, esse erro \'e convertido em comando lateral:
+
+\begin{equation}
+    G_{pre}=K_{pre}e_\gamma
+\end{equation}
+
+No Simulink, isso aparece no bloco de fun\c{c}\~ao:
+
+\begin{lstlisting}
+D.KPreTurn*(atan2(u(2),u(1))-u(3))
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{figures_simulink/model_preprogrammed.png}
+\caption{Bloco de guiamento pr\'e-programado modificado. Entram \(\Delta x\), \(\Delta z\) e \(\gamma\); sai o comando \(G_{pre}\), limitado antes de ir para a sele\c{c}\~ao de guiamento.}
+\end{figure}
+
+\textbf{Por que isso foi mudado:} no Caso 2, o m\'issil \'e lan\c{c}ado a \(90^\circ\) da dire\c{c}\~ao do alvo. Se entrasse direto em terminal, o autodiretor ainda n\~ao conseguiria ver o alvo, pois o alvo est\'a fora do cone de \(40^\circ\). Ent\~ao o pr\'e-programado precisa primeiro curvar o m\'issil at\'e colocar o alvo dentro do cone.
+
+\subsection{4. A Comuta\c{c}\~ao para Terminal Foi Separada da Ideia de ``AD Ligado''}
+
+Outra mudan\c{c}a importante foi diferenciar duas coisas:
+
+\begin{itemize}
+    \item o autodiretor estar ligado;
+    \item o guiamento terminal estar autorizado.
+\end{itemize}
+
+No Caso 2, por exemplo, o autodiretor est\'a ligado desde o lan\c{c}amento, mas isso n\~ao significa que ele pode guiar o m\'issil desde o in\'icio. Ele s\'o pode entrar em terminal quando o alvo estiver dentro do cone.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures_simulink/model_switch.png}
+\caption{Bloco de comuta\c{c}\~ao. A decis\~ao usa \(\Delta x\), \(\Delta z\) e \(\theta_{AD}\) para liberar ou n\~ao o guiamento terminal.}
+\end{figure}
+
+Na pr\'atica, a l\'ogica ficou assim:
+
+\begin{table}[H]
+\centering
+\caption{Regra de entrada no guiamento terminal.}
+\begin{tabular}{p{0.22\textwidth}p{0.66\textwidth}}
+\toprule
+Caso & Crit\'erio usado \\
+\midrule
+Caso 1 & O m\'issil sai apontado para o alvo. O terminal \'e liberado quando a dist\^ancia restante atinge \(20~\text{km}\). \\
+Caso 2 & O AD est\'a ligado desde o lan\c{c}amento, mas o terminal s\'o \'e liberado quando a geometria coloca o alvo dentro do cone de \(40^\circ\). \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Por que isso foi mudado:} o enunciado pede explicitamente duas l\'ogicas diferentes. No Caso 1, a troca \'e por dist\^ancia. No Caso 2, a troca depende da geometria de visada. Se fosse usado apenas o instante de ligar o AD, o Caso 2 ficaria fisicamente incorreto.
+
+\subsection{5. O Subsistema de Controle Passou a Escolher entre Dois Comandos}
+
+O subsistema de controle ficou com dois caminhos:
+
+\begin{itemize}
+    \item caminho pr\'e-programado: usado antes da aquisi\c{c}\~ao terminal;
+    \item caminho terminal: usado depois que a condi\c{c}\~ao de comuta\c{c}\~ao \'e satisfeita.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{figures_simulink/model_control.png}
+\caption{Vis\~ao geral do subsistema de controle. A parte modificada fica principalmente nos blocos \textit{MANSUP Preprogrammed Guidance} e \textit{MANSUP Guidance Switch}. A sa\'ida selecionada segue para o airframe e depois para a din\^amica massa-ponto.}
+\end{figure}
+
+Visualmente, a leitura do bloco \'e:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    block/.style={draw, rounded corners, align=center, minimum width=2.55cm, minimum height=0.85cm, font=\small},
+    arrow/.style={->, thick},
+    node distance=0.55cm
+]
+\node[block] (geom) {Geometria\\\(\Delta x,\Delta z,\gamma\)};
+\node[block, right=of geom] (pre) {Guiamento\\pr\'e-programado};
+\node[block, below=0.8cm of pre] (term) {Guiamento\\terminal};
+\node[block, right=0.8cm of pre] (switch) {Chave de\\guiamento};
+\node[block, right=of switch] (air) {Airframe e\\limite de \(5g\)};
+\node[block, right=of air] (dyn) {Din\^amica\\massa-ponto};
+\draw[arrow] (geom) -- (pre);
+\draw[arrow] (geom) |- (term);
+\draw[arrow] (pre) -- (switch);
+\draw[arrow] (term) -| (switch);
+\draw[arrow] (switch) -- (air);
+\draw[arrow] (air) -- (dyn);
+\end{tikzpicture}
+\caption{Fluxo l\'ogico implementado no Simulink ap\'os as altera\c{c}\~oes.}
+\end{figure}
+
+\subsection{6. Os Dois Casos Foram Automatizados no MATLAB}
+
+Para evitar mudar valores manualmente dentro do Simulink, foi criado um script que escolhe o caso, define as condi\c{c}\~oes de lan\c{c}amento, roda o modelo e salva os gr\'aficos.
+
+\begin{lstlisting}[language=Matlab]
+if caseId == 1
+    C = CondLanc(HORIZONTAL, 65000, 0);
+    C.TerminalRange = 20000;
+else
+    C = CondLanc(HORIZONTAL, 15000, 0);
+    C.Gama0 = 90*D2R;
+    C.TerminalRange = inf;
+end
+
+sim('MassaPontoMANSUP_2018b');
+\end{lstlisting}
+
+\textbf{Por que isso foi mudado:} a automatiza\c{c}\~ao reduz erro de execu\c{c}\~ao. O mesmo modelo Simulink \'e usado nos dois casos, e somente as condi\c{c}\~oes iniciais e a regra de terminal mudam.
+
+\subsection{Resumo das Altera\c{c}\~oes}
+
+\begin{table}[H]
+\centering
+\caption{Resumo final do que foi modificado.}
+\begin{tabular}{p{0.25\textwidth}p{0.34\textwidth}p{0.31\textwidth}}
+\toprule
+Parte & O que foi mudado & Motivo \\
+\midrule
+\texttt{CondLanc.m} & Posi\c{c}\~ao inicial, alvo parado, plano horizontal e altitude de \(10~\text{m}\). & Atender aos dois cen\'arios no plano \(X\)-\(Z\). \\
+\texttt{DadosMissil.m} & Limites do AD, airframe e acelera\c{c}\~ao lateral. & Representar os limites f\'isicos pedidos. \\
+Guiamento pr\'e-programado & Comando baseado em \(\operatorname{atan2}(\Delta z,\Delta x)-\gamma\). & Fazer a curva inicial, principalmente no Caso 2. \\
+Chave de guiamento & Terminal por dist\^ancia no Caso 1 e por cone no Caso 2. & Separar AD ligado de terminal autorizado. \\
+\texttt{run\_mansup\_case.m} & Execu\c{c}\~ao autom\'atica dos dois casos. & Repetibilidade e gera\c{c}\~ao dos gr\'aficos. \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,552 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projeto Integrado de Míssil Antinavio</title>
+  <style>
+    :root {
+      --bg: #0f1720;
+      --panel: #172231;
+      --ink: #edf3f8;
+      --muted: #aeb9c6;
+      --line: #344357;
+      --accent: #5fb3ff;
+      --accent2: #f2c14e;
+      --ok: #65d38a;
+      --warn: #ffb86b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .deck {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      transition: transform 280ms ease;
+    }
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      flex: 0 0 100vw;
+      padding: 44px 58px 54px;
+      position: relative;
+      display: grid;
+      grid-templaté-rows: auto 1fr auto;
+      gap: 22px;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(95,179,255,.10), transparent 28%),
+        linear-gradient(180deg, #101a25 0%, #0d141d 100%);
+    }
+    .slide h1, .slide h2, .slide h3 { margin: 0; line-height: 1.05; letter-spacing: 0; }
+    .slide h1 { font-size: 54px; max-width: 1050px; }
+    .slide h2 { font-size: 42px; color: var(--ink); }
+    .slide h3 { font-size: 24px; color: var(--accent); margin-bottom: 12px; }
+    .subtitle { font-size: 24px; color: var(--muted); margin-top: 18px; max-width: 980px; }
+    .kicker { color: var(--accent2); text-transform: uppercase; font-size: 15px; letter-spacing: .12em; font-weight: 700; margin-bottom: 12px; }
+    .content { min-height: 0; display: grid; gap: 22px; align-content: center; }
+    .two { grid-templaté-columns: 1fr 1fr; align-items: center; }
+    .two.wide-left { grid-templaté-columns: 1.15fr .85fr; }
+    .three { grid-templaté-columns: repeat(3, 1fr); align-items: stretch; }
+    .card {
+      background: rgba(23,34,49,.86);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.22);
+    }
+    .card strong { color: var(--ink); }
+    ul { margin: 0; padding-left: 24px; font-size: 24px; line-height: 1.35; }
+    li + li { margin-top: 10px; }
+    p { font-size: 24px; line-height: 1.35; margin: 0; color: var(--muted); }
+    .small { font-size: 18px; color: var(--muted); line-height: 1.35; }
+    .metric {
+      display: grid;
+      gap: 6px;
+      padding: 18px;
+      border-radius: 10px;
+      background: #111c28;
+      border: 1px solid var(--line);
+      min-height: 118px;
+    }
+    .metric .value { font-size: 38px; font-weight: 800; color: var(--accent); }
+    .metric .label { font-size: 17px; color: var(--muted); }
+    .flow {
+      display: grid;
+      grid-templaté-columns: repeat(4, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    .flow .step {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #142030;
+      position: relative;
+    }
+    .flow .step:after {
+      content: "→";
+      position: absolute;
+      right: -14px;
+      top: 42%;
+      color: var(--accent2);
+      font-size: 26px;
+      font-weight: 800;
+    }
+    .flow .step:last-child:after { display: none; }
+    .step .num { color: var(--accent2); font-weight: 800; font-size: 16px; margin-bottom: 8px; }
+    .step .title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    img {
+      max-width: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+    }
+    .img-panel {
+      background: #f8fafc;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    .code-img { background: #101722; padding: 0; border-radius: 10px; }
+    .code-img img { width: 100%; max-height: 54vh; border-radius: 10px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 21px;
+      background: #121d2a;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { color: var(--accent); background: #172334; }
+    tr:last-child td { border-bottom: 0; }
+    .tag { display: inline-block; padding: 5px 9px; border-radius: 999px; background: #203147; color: var(--accent); font-size: 15px; font-weight: 700; }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      color: #748295;
+      font-size: 14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 12px;
+    }
+    .logo { position: absolute; top: 32px; right: 48px; height: 52px; width: auto; border-radius: 0; }
+    .controls {
+      position: fixed;
+      right: 22px;
+      bottom: 18px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+      background: rgba(9,13,19,.78);
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      border-radius: 999px;
+    }
+    button {
+      background: #1d2b3d;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+    .ok { color: var(--ok); font-weight: 800; }
+    @media print {
+      body { overflow: visible; }
+      .deck { display: block; transform: none !important; height: auto; }
+      .slide { page-break-after: always; }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck">
+    <section class="slide">
+      <img class="logo" src="assets/ita-logo.png" alt="Logo do ITA">
+      <div>
+        <div class="kicker">Projeto integrado PRJ-75</div>
+        <h1>Desenvolvimento Integrado de um Míssil Antinavio</h1>
+        <p class="subtitle">Dimensionamento com propelente sólido, guiamento horizontal, dinâmica DATCOM/6DOF e projeto de autopilotos.</p>
+      </div>
+      <div class="content two">
+        <div class="card">
+          <h3>Objetivo da apresentação</h3>
+          <ul>
+            <li>Conectar os quatro relatórios.</li>
+            <li>Mostrar o que veio dos códigos da disciplina.</li>
+            <li>Destacar o que foi alterado e por que.</li>
+            <li>Fechar com resultados e limitações.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Equipe</h3>
+          <p>Gabriel Henrique Alves Rezende<br>João Pedro Chamhum Basílio<br>Matéus Pereira Alves<br>Matheus Marinheiro Spontam<br>Sávio Lima Rodrigues</p>
+        </div>
+      </div>
+      <div class="footer"><span>Use as setas para navegar</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Lógica do projeto</div><h2>Como os relatórios se conectam</h2></div>
+      <div class="content">
+        <div class="flow">
+          <div class="step"><div class="num">R1</div><div class="title">Dimensionamento</div><p class="small">Booster + sustainer sólidos, massa, geometria e alcance.</p></div>
+          <div class="step"><div class="num">R2</div><div class="title">Guiamento V1</div><p class="small">Massa-ponto horizontal, autodiretor e comutação terminal.</p></div>
+          <div class="step"><div class="num">R3</div><div class="title">Dados 6DOF</div><p class="small">DATCOM, CG/inércia e simulação 6DOF.</p></div>
+          <div class="step"><div class="num">R4</div><div class="title">Autopilotos</div><p class="small">Atitude e aceleração por root-locus.</p></div>
+        </div>
+        <div class="card">
+          <p><strong>Leitura do conjunto:</strong> o R2 é a primeira versão de guiamento. O R3 e o R4 levam a mesma configuração para aerodinâmica, dinâmica e controle com mais detalhe.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Reprodução</div><h2>Ordem para refazer os resultados</h2></div>
+      <div class="content">
+        <div class="flow">
+          <div class="step"><div class="num">1</div><div class="title">Dimensionar</div><p class="small">Rodar o script de propulsão sólida e conferir o alcance no SimX.</p></div>
+          <div class="step"><div class="num">2</div><div class="title">Guiar</div><p class="small">Executar os dois casos massa-ponto no modelo MANSUP adaptado.</p></div>
+          <div class="step"><div class="num">3</div><div class="title">Gerar dados</div><p class="small">Criar o for005.dat, rodar DATCOM e converter para M_aed.mat.</p></div>
+          <div class="step"><div class="num">4</div><div class="title">Controlar</div><p class="small">Rodar VooUnico e ProjRLocus_antiship com os dados finais.</p></div>
+        </div>
+        <div class="card">
+          <p><strong>Checagem crítica:</strong> usar o mesmo \(X_{ref}=2.700\) m no DATCOM e no 6DOF, e converter o \(X_{CP}\) do DATCOM como valor adimensional em calibres.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">R1</div><h2>Dimensionamento preliminar com propelente sólido</h2></div>
+      <div class="content three">
+        <div class="metric"><div class="value">855 kg</div><div class="label">Massa de lançamento</div></div>
+        <div class="metric"><div class="value">5.80 m</div><div class="label">Comprimento total</div></div>
+        <div class="metric"><div class="value">71.09 km</div><div class="label">Alcance simulado</div></div>
+        <div class="metric"><div class="value">0.35 m</div><div class="label">Diametro de referencia</div></div>
+        <div class="metric"><div class="value">306 m/s</div><div class="label">Velocidade de cruzeiro proxima de Mach 0,9</div></div>
+        <div class="metric"><div class="value">40.6%</div><div class="label">Fração de propelente</div></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Base de codigo do R1</div><h2>O que mudou no codigo de dimensionamento</h2></div>
+      <div class="content two wide-left">
+        <div class="code-img"><img src="assets/code/dimensioning_code.png" alt="Trecho do codigo de dimensionamento"></div>
+        <div class="card">
+          <h3>Raciocinio</h3>
+          <ul>
+            <li>O fluxo de dimensionamento do professor foi preservado.</li>
+            <li>O míssil foi escalado de um exemplo pequeno para porte antinavio.</li>
+            <li>O tempo de queima do sustainer foi vinculado ao alcance de \(70\) km.</li>
+            <li>A simulação com <span class="tag">SimX</span> verificou alcance e velocidade.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Resultado do R1</div><h2>Validação de alcance e velocidade de cruzeiro</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/range_velocity.png" alt="Alcance e velocidade"></div>
+        <div class="card">
+          <h3>Interpretação</h3>
+          <ul>
+            <li>O booster acelera o míssil até a velocidade de cruzeiro.</li>
+            <li>O sustainer compensa o arrasto em cruzeiro.</li>
+            <li>O alcance fica ligeiramente acima de \(70\) km.</li>
+            <li>Esse conjunto de massa e geometria alimenta os relatórios seguintes.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">R2</div><h2>Protótipo de guiamento massa-ponto</h2></div>
+      <div class="content two">
+        <div class="card">
+          <h3>Modelo base</h3>
+          <ul>
+            <li>O modelo massa-ponto em Simulink da disciplina foi mantido.</li>
+            <li>As principais mudancas ficaram dentro do subsistema de controle.</li>
+            <li>A simulação foi feita no plano horizontal \(X\)-\(Z\).</li>
+            <li>A altitude entrou apenas no calculo atmosferico a \(10\) m.</li>
+          </ul>
+        </div>
+        <div class="img-panel"><img src="assets/model_control.png" alt="Subsistema de controle"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Alteração do R2</div><h2>Curva pré-programada antes do guiamento terminal</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/model_preprogrammed.png" alt="Guiamento pre-programado"></div>
+        <div class="code-img"><img src="assets/code/guidance_code.png" alt="Trecho do codigo de guiamento"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Decisão-chave do R2</div><h2>Autodiretor ligado não significa modo terminal</h2></div>
+      <div class="content two">
+        <div class="card">
+          <h3>Por que isso importa</h3>
+          <ul>
+            <li>No caso 2, o lançamento comeca com marcação de \(90^\circ\).</li>
+            <li>O autodiretor pode estar ligado, mas o alvo ainda esta fora do cone de \(40^\circ\).</li>
+            <li>O guiamento terminal so e autorizado quando a geometria permite rastreio.</li>
+          </ul>
+        </div>
+        <div class="img-panel"><img src="assets/model_switch.png" alt="Comutação de guiamento"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Resultados do R2</div><h2>Dois casos de guiamento horizontal</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/case1_trajectory.png" alt="Trajetoria do caso 1"></div>
+        <div class="img-panel"><img src="assets/case2_trajectory.png" alt="Trajetoria do caso 2"></div>
+      </div>
+      <div class="footer"><span>Caso 1: lançamento direto. Caso 2: curva pré-programada.</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Resultados numericos do R2</div><h2>A comutação terminal funcionou como planejado</h2></div>
+      <div class="content">
+        <table>
+          <tr><th>Resultado</th><th>Caso 1</th><th>Caso 2</th></tr>
+          <tr><td>Início do modo terminal</td><td>146.35 s</td><td>13.95 s</td></tr>
+          <tr><td>Distancia no inicio terminal</td><td>19.997 km</td><td>12.680 km</td></tr>
+          <tr><td>Tempo de voo</td><td>214.90 s</td><td>58.95 s</td></tr>
+          <tr><td>Distancia final</td><td>500 m</td><td>549 m</td></tr>
+          <tr><td>Velocidade final</td><td>284.4 m/s</td><td>305.0 m/s</td></tr>
+        </table>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~45 s</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">R3</div><h2>Do guiamento simplificado ao DATCOM e 6DOF</h2></div>
+      <div class="content two">
+        <div class="code-img"><img src="assets/code/datcom_code.png" alt="Trecho do codigo DATCOM"></div>
+        <div class="card">
+          <h3>O que foi alterado</h3>
+          <ul>
+            <li>A cadeia DATCOM da disciplina foi preservada.</li>
+            <li>O gerador de geometria foi adaptado ao míssil antinavio.</li>
+            <li>Foi gerado o <span class="tag">M_aed.mat</span> para a nova geometria.</li>
+            <li>A mesma referencia de momento foi usada no DATCOM e no 6DOF.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Aerodinâmica do R3</div><h2>Banco de coeficientes gerado</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/aero_cm_cn.png" alt="CM e CN"></div>
+        <div class="img-panel"><img src="assets/aero_cd.png" alt="CD"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Propriedades de massa do R3</div><h2>Modelo de CG e inércia</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/exocet_internal.jpg" alt="Arranjo interno"></div>
+        <div class="card">
+          <h3>Valores principais</h3>
+          <ul>
+            <li>Massa inicial: \(874.9\) kg.</li>
+            <li>\(X_{CG}\) inicial: \(2.833\) m.</li>
+            <li>\(X_{CG}\) final: \(1.856\) m após a queima.</li>
+            <li>Referência comum de momento: \(2.700\) m.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Correção do R3</div><h2>Interpretação correta do XCP do DATCOM</h2></div>
+      <div class="content two">
+        <div class="code-img"><img src="assets/code/cg_code.png" alt="Trecho do codigo de CG"></div>
+        <div class="card">
+          <h3>Ponto técnico</h3>
+          <ul>
+            <li>O \(X_{CP}=-0.677\) do DATCOM e adimensional, em calibres.</li>
+            <li>\(X_{CP,abs}=2.700-(-0.677)(0.350)=2.937\) m.</li>
+            <li>O CP fica \(0.30\) calibres atrás do CG inicial.</li>
+            <li>Isso e consistente com \(C_{M\alpha}<0\).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">6DOF do R3</div><h2>Verificação dinâmica antes dos autopilotos</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/dof_alpha_delta_overlay.png" alt="Alpha e delta"></div>
+        <div class="img-panel"><img src="assets/dof_velocity_accel.png" alt="Velocidade e aceleração"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">R4</div><h2>Projeto de autopilotos a partir dos dados 6DOF</h2></div>
+      <div class="content two">
+        <div class="code-img"><img src="assets/code/autopilot_code.png" alt="Trecho do codigo de autopiloto"></div>
+        <div class="card">
+          <h3>Codigo da disciplina preservado</h3>
+          <ul>
+            <li>O <span class="tag">ProjRLocus.m</span> foi copiado para <span class="tag">ProjRLocus_antiship.m</span>.</li>
+            <li>Foram mantidos <span class="tag">FTransDin.m</span>, <span class="tag">calcula_coef.m</span> e <span class="tag">Autopiloto.slx</span>.</li>
+            <li>Foram substituídos os dados do míssil, CG/inércia e matriz aerodinâmica.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Topologia do R4</div><h2>Autopilotos de atitude e aceleração</h2></div>
+      <div class="content two">
+        <div class="card">
+          <h3>Malha de atitude</h3>
+          <p>\(\theta_c \rightarrow K_\theta \rightarrow (K_q,\ atuador,\ q/\delta) \rightarrow 1/s \rightarrow \theta\)</p>
+        </div>
+        <div class="card">
+          <h3>Malha de aceleração</h3>
+          <p>\(A_{z,c} \rightarrow K_a/s \rightarrow (K_q,\ atuador,\ q/\delta) \rightarrow A_z/\delta \rightarrow A_z\)</p>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~45 s</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Ganhos do R4</div><h2>Agendamento de ganhos</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/gain_curves_vs_cg.png" alt="Curvas de ganho"></div>
+        <div class="card">
+          <h3>Ganhos nominais finais</h3>
+          <ul>
+            <li>\(K_q = 0.333\) no ponto nominal do sustainer.</li>
+            <li>\(K_\theta = 8.0\).</li>
+            <li>\(K_a = 0.025\), ajustado em torno do root-locus.</li>
+            <li>A malha de aceleração foi o caso limitante.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Root-locus do R4</div><h2>Evidencia pelo lugar das raízes</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/root_locus_inner_attitude.png" alt="Root-locus interno"></div>
+        <div class="img-panel"><img src="assets/root_locus_outer_acceleration.png" alt="Root-locus externo de aceleração"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Respostas do R4</div><h2>Respostas ao degrau e requisitos</h2></div>
+      <div class="content two">
+        <div class="img-panel"><img src="assets/step_attitude.png" alt="Degrau de atitude"></div>
+        <div class="img-panel"><img src="assets/step_acceleration_5g.png" alt="Degrau de aceleração 5g"></div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Verificação final</div><h2>Os requisitos foram aténdidos</h2></div>
+      <div class="content">
+        <table>
+          <tr><th>Requisito</th><th>Resultado</th><th>Limite</th><th>Status</th></tr>
+          <tr><td>Aceleração lateral</td><td>13.52 g</td><td>&ge; 5 g</td><td class="ok">Atendido</td></tr>
+          <tr><td>Banda de atitude</td><td>1.652 Hz</td><td>&ge; 0.5 Hz</td><td class="ok">Atendido</td></tr>
+          <tr><td>Banda de aceleração</td><td>0.537 Hz</td><td>&ge; 0.5 Hz</td><td class="ok">Atendido</td></tr>
+        </table>
+        <div class="card">
+          <p><strong>Ressalva principal:</strong> o modelo de guiamento massa-ponto e o modelo 6DOF/autopiloto ainda não estão unidos em uma única simulação completa de missão.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Tempo sugerido: ~1 min</span><span></span></div>
+    </section>
+
+    <section class="slide">
+      <div><div class="kicker">Fechamento</div><h2>O que o projeto entregou</h2></div>
+      <div class="content two">
+        <div class="card">
+          <h3>Foi construído</h3>
+          <ul>
+            <li>Dimensionamento de míssil antinavio com propelente sólido.</li>
+            <li>Protótipo de guiamento com comutação terminal.</li>
+            <li>Banco aerodinamico DATCOM.</li>
+            <li>Modelo de massa/inércia para 6DOF.</li>
+            <li>Autopilotos de atitude e aceleração.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Próximo passo técnico</h3>
+          <ul>
+            <li>Integrar guiamento, 6DOF e autopilotos em uma única simulação de missão.</li>
+            <li>Validar o envelope completo de voo.</li>
+            <li>Refinar estimativas de propulsão e massa estrutural.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer"><span>Fim</span><span></span></div>
+    </section>
+  </main>
+
+  <div class="controls">
+    <button id="prev">←</button>
+    <span id="counter">1 / 22</span>
+    <button id="next">→</button>
+  </div>
+
+  <script>
+    const deck = document.getElementById('deck');
+    const slides = [...document.querySelectorAll('.slide')];
+    const counter = document.getElementById('counter');
+    let index = 0;
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      deck.style.transform = `translatéX(${-index * 100}vw)`;
+      counter.textContent = `${index + 1} / ${slides.length}`;
+    }
+    document.getElementById('next').onclick = () => show(index + 1);
+    document.getElementById('prev').onclick = () => show(index - 1);
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowRight', 'PageDown', ' '].includes(e.key)) show(index + 1);
+      if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) show(index - 1);
+      if (e.key === 'Home') show(0);
+      if (e.key === 'End') show(slides.length - 1);
+    });
+    show(0);
+  </script>
+</body>
+</html>
+

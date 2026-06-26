@@ -1,0 +1,57 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{darkblue}{rgb}{0,0,0.55}
+\setlength{\headheight}{28pt}
+\hypersetup{colorlinks=true,linkcolor=darkblue,urlcolor=darkblue}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{PRJ-75}
+\chead{Integrated Antiship Missile Project}
+\rhead{\includegraphics[height=0.8cm]{images/ita-logo.png}}
+\cfoot{\thepage}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\input{sections/titlepage}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\input{sections/01_overview}
+\clearpage
+\input{sections/02_preliminary_sizing}
+\clearpage
+\input{sections/03_point_mass_guidance}
+\clearpage
+\input{sections/04_datcom_6dof}
+\clearpage
+\input{sections/05_autopilots}
+\clearpage
+\input{sections/06_integration}
+\clearpage
+\input{sections/07_reproducibility}
+
+\end{document}

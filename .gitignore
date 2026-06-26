@@ -1,0 +1,20 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# MATLAB/Simulink generated caches
+slprj/
+*.slxc
+*.asv
+*.autosave
+
+# OS/editor files
+Thumbs.db
+.DS_Store
+*.tmp
+

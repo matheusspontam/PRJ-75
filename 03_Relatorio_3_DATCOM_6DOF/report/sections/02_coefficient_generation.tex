@@ -1,0 +1,81 @@
+\section{Coefficient Generation}
+
+In \texttt{C:\textbackslash 01-Aerodinamica\textbackslash RunDatcom2}, the file \texttt{for005.dat} was generated with the equivalent Exocet geometry. The workflow was:
+\begin{center}
+\small
+\texttt{for005.dat -> Misdat/RunDatcom2 -> coeficientes.dat -> Coef2Mat -> M\_aed.mat}
+\end{center}
+
+The original \texttt{RunDatcom2.exe} from the course package was tied to the geometry of the example missile. Running it without changing its source would regenerate coefficients for the original classroom missile, not for the Exocet-equivalent geometry. Therefore, an equivalent MATLAB script was used to write the Exocet \texttt{for005.dat}, run \texttt{Misdat.exe}, and assemble the same \texttt{coeficientes.dat} structure expected by the provided \texttt{Coef2Mat.m} script. Thus, the DATCOM processing chain was preserved, but the geometry generation step was adapted to the present missile.
+
+\subsection*{DATCOM setup}
+
+The first step was to define the reference center and the control-deflection sweep. The same \(XCG\) was later used in the 6DOF model.
+
+\begin{lstlisting}[language=Matlab]
+xcg = 2.700;
+delta = -20:2:20;
+
+write_exocet_for005(0, xcg);
+\end{lstlisting}
+
+The geometry file was then regenerated for each deflection. For each case, \texttt{Misdat.exe} produced \texttt{for006.dat}; the MATLAB reader extracted the coefficients and appended them to \texttt{coeficientes.dat}.
+
+\begin{lstlisting}[language=Matlab]
+for k = 1:numel(delta)
+    write_exocet_for005(delta(k), xcg);
+    status = system('Misdat.exe');
+
+    [mach, alpha, CN, CM, CA, CY, CLN, CLL, CL, CD, XCP, ...] = ...
+        DATCOMreader('for006.dat');
+end
+
+Coef2Mat('coeficientes.dat');
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Main DATCOM geometry cards used in \texttt{for005.dat}.}
+\begin{tabular}{lc}
+\toprule
+DATCOM parameter & Value \\
+\midrule
+Moment reference, \(XCG\) & 2.700 m \\
+Nose type & Ogive \\
+Nose length, \(LNOSE\) & 0.700 m \\
+Body diameter, \(DNOSE\) & 0.350 m \\
+Center-body length, \(LCENTR\) & 5.090 m \\
+Fin set 1 span & 0.175 to 0.370 m \\
+Fin set 1 chord & 0.450 to 0.200 m \\
+Fin set 1 leading edge, \(XLE\) & 0.750 to 0.950 m \\
+Fin set 2 span & 0.175 to 0.565 m \\
+Fin set 2 chord & 1.150 to 0.350 m \\
+Fin set 2 leading edge, \(XLE\) & 3.800 to 4.650 m \\
+Hinge position & 0.975 m \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Generated coefficients}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/aero_cm_cn_03.png}
+\caption{Normal-force and pitching-moment coefficients over the simulated Mach range.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/aero_cd_03.png}
+\caption{Drag coefficient obtained from the DATCOM coefficient set.}
+\end{figure}
+
+\subsection*{Static stability indication}
+
+At Mach 0.9, \(\alpha=0^\circ\), and \(\delta=0^\circ\), the generated table gives \(C_{M\alpha}=-15.36~\text{rad}^{-1}\) and \(C_{N\alpha}=22.70~\text{rad}^{-1}\). The negative \(C_{M\alpha}\) indicates a restoring pitching moment around the DATCOM moment reference. The DATCOM output also reports \(X_{CP}=-0.677\), which is dimensionless and given in calibers with respect to the moment reference. Therefore, using \(X_{ref}=2.700~\text{m}\) and \(D_{ref}=0.350~\text{m}\),
+\[
+    X_{CP,abs}=X_{ref}-X_{CP}D_{ref}
+    =2.700-(-0.677)(0.350)
+    =2.937~\text{m}.
+\]
+Thus, for the initial estimated CG at \(2.833~\text{m}\), the pressure center is about \(0.104~\text{m}\), or \(0.30\) calibers, aft of the CG. This is consistent with the negative \(C_{M\alpha}\). Transferring the pitching-moment slope to the estimated CG gives \(C_{M\alpha,CG}\approx -15.36+22.70(0.133/0.350)=-6.73~\text{rad}^{-1}\), which remains statically stable for this reference condition.

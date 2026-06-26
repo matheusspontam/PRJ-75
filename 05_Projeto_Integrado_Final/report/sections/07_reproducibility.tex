@@ -1,0 +1,49 @@
+\section{Reproducibility Procedure}
+
+The project can be reproduced by running each stage in the order below. The sequence keeps the same structure used in the course material: first the missile is sized, then guidance is checked in the point-mass model, then aerodynamic and mass-property data are generated, and finally the autopilots are designed.
+
+\subsection{Required Tools}
+
+\begin{itemize}
+    \item MATLAB with Simulink;
+    \item Control System Toolbox;
+    \item the course point-mass and 6DOF folders;
+    \item the course DATCOM workflow with \texttt{RunDatcom2} and \texttt{Coef2Mat.m}.
+\end{itemize}
+
+\subsection{Execution Order}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Minimum execution sequence to reproduce the delivered results.}
+\begin{tabular}{p{0.18\textwidth}p{0.29\textwidth}p{0.43\textwidth}}
+\toprule
+Stage & File or action & Expected output \\
+\midrule
+Sizing & run the solid-propulsion sizing script and \texttt{SimX} & missile mass, length, booster/sustainer data, range and velocity plot \\
+Point-mass guidance & run the MANSUP horizontal cases script and the adapted Simulink model & trajectories, seeker/terminal switching times and final miss distances for both cases \\
+DATCOM geometry & generate \texttt{for005.dat} from the adapted geometry script & DATCOM input file with the same moment reference used later in 6DOF \\
+DATCOM processing & run \texttt{RunDatcom2}, then \texttt{Coef2Mat} & \texttt{coeficientes.dat} and \texttt{M\_aed.mat} \\
+Coefficient plots & run \texttt{PlotCmCN.m}, \texttt{PlotCD.m} and \texttt{PlotCoef.m} & aerodynamic coefficient figures \\
+6DOF data & edit/run \texttt{DadosMissil.m}, \texttt{DadosCGInercia.m} and \texttt{VooUnico.m} & CG/inertia values and dynamic response plots \\
+Autopilots & run \texttt{ProjRLocus\_antiship.m} using the course autopilot files & gain curves, root-locus plots, step responses and requirement check \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Data Consistency Checks}
+
+Three checks are important before comparing results. First, the diameter, length, mass and propulsion values from the sizing stage must be the same values used to build the DATCOM geometry and the CG/inertia model. Second, the DATCOM moment reference must match the 6DOF reference:
+
+\begin{lstlisting}[language=Matlab]
+D.CRM = [2.700 0 0]';
+\end{lstlisting}
+
+Third, DATCOM \texttt{XCP} must be treated as a dimensionless value in calibers. With \(X_{ref}=2.700~\text{m}\), \(D=0.350~\text{m}\) and \(XCP=-0.677\),
+
+\[
+    X_{CP,abs}=2.700-(-0.677)(0.350)=2.937~\text{m}.
+\]
+
+These checks keep the aerodynamic moments, CG position and autopilot design referenced to the same physical missile.
