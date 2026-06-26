@@ -99,3 +99,34 @@ Acceleration autopilot bandwidth & \(0.537~\text{Hz}\) & \(\geq 0.5~\text{Hz}\) 
 \end{table}
 
 The acceleration loop was the limiting case. The initial root-locus gain was too aggressive for the nominal model, so the external gain was adjusted to \(K_a=0.025\). This kept the loop stable while maintaining bandwidth above \(0.5~\text{Hz}\).
+
+\subsection{Engagement Check With Autopilot Constraints}
+
+The final check connects the autopilot limits to the mission geometry. A horizontal point-mass engagement was run with Mach \(0.9\) at \(10~\text{m}\), \(5g\) lateral acceleration saturation, seeker cone of \(40^\circ\), and an airframe response of \(w_n=0.5~\text{Hz}\). Terminal guidance used proportional navigation. Case 1 switched to terminal guidance at \(20~\text{km}\); Case 2 first used a pre-programmed turn until the target entered the seeker cone.
+
+\begin{table}[H]
+\centering
+\caption{Engagement results using R4 constraints.}
+\begin{tabular}{lccc}
+\toprule
+Case & Minimum range & Time & Status \\
+\midrule
+65 km, bearing \(0^\circ\) & \(48.93~\text{m}\) & \(212.10~\text{s}\) & Satisfied \\
+15 km, bearing \(90^\circ\) & \(47.06~\text{m}\) & \(54.43~\text{s}\) & Satisfied \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/case1_engagement_trajectory.png}
+\caption{Case 1 trajectory with R4 constraints.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/case2_engagement_trajectory.png}
+\caption{Case 2 trajectory with R4 constraints.}
+\end{figure}
+
+Both engagement cases pass the \(50~\text{m}\) miss-distance criterion. The second case is the sizing case for maneuvering because it reaches the \(5g\) lateral acceleration limit during the initial turn.
