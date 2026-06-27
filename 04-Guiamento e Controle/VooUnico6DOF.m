@@ -26,14 +26,30 @@ D.Cmap = 0;
 
 % Carrega dados de autopiloto
 D = DadosControle(D);
-load autopiloto_antiship.mat
+load autopiloto.mat
 
 % Simulação
 
-sim('Autopiloto.slx');
+sim('GuiamentoControle.slx');
 
 % Salva dados da simulação em S
 SalvaDinamica6DOF;
+
+if Bingo(length(Bingo)) == 1
+    disp('Bingo');
+end
+
+if Stop_VMin(length(Stop_VMin)) == 1
+    disp('Velocidade mínima');
+end
+
+if Stop_FugaAlvo(length(Stop_FugaAlvo)) == 1
+    disp('Fuga do alvo');
+end
+
+if ImpactoSolo(length(ImpactoSolo)) == 1
+    disp('Impacto com Solo');
+end
 
 plot6DOF(S);
 

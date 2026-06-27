@@ -1,4 +1,4 @@
-﻿function [D] = DadosCGInercia(D)
+function [D] = DadosCGInercia(D)
 
 D.R = D.DRef/2;
 
@@ -17,7 +17,8 @@ m_MOTS = Mf_Sustainer + m_prop0S;
 D.m_prop0 = m_prop0B + m_prop0S;
 D.m = m_Cont + m_CDG + m_MOTB + m_MOTS + M_Tub;
 D.mf = D.m - D.m_prop0;
-D.L = L_Cont + L_CDG + L_Booster + L_Sustainer + L_Tub;
+D.L = L_Cont + L_CDG + L_Booster + L_Sustainer + L_Tub
+
 
 xcg_Cont = L_Cont/2;
 xcg_CDG = L_Cont + L_CDG/2;
@@ -49,7 +50,8 @@ D.ycgf = 0;
 D.zcgf = 0;
 
 % Mesmo XCG usado no DATCOM.
-D.CRM = [2.700 0 0]';
+Aer = load('M_aed.mat');
+D.CRM = [-Aer.dados.XCG 0 0]';
 
 D.Ix0 = D.m*D.R^2/2;
 D.IxBm = (D.m-m_prop0B/2)*D.R^2/2;

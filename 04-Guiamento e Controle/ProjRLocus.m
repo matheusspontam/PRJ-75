@@ -1,27 +1,27 @@
 
 %-------------------------------------------------------------------------
 % Script ProjRLocus.m
-% Projeto dos autopilotos de atitude e acelera√ß√£o pelo
-% m√©todo de Root Locus
+% Projeto dos autopilotos de atitude e aceleraÁ„o pelo
+% mÈtodo de Root Locus
 %
 % Entrada:
-%   - D: estrutura com os dados do m√≠ssil 
+%   - D: estrutura com os dados do mÌssil 
 %
-% Sa√≠da:
+% SaÌda:
 %   - Arquivo autopiloto.mat, com as seguintes tabelas:
-%       - T_acel_k_ext: ganhos da malha externa de acelera√ß√£o
+%       - T_acel_k_ext: ganhos da malha externa de aceleraÁ„o
 %       - T_at_k_ext:   ganhos da malha externa de atitude
 %       - T_at_k_int:   ganhos da malha interna de atitude    
-%       - T_acel_k_int: ganhos da malha interna de acelera√ß√£o
+%       - T_acel_k_int: ganhos da malha interna de aceleraÁ„o
 %       - vet_x_CG:     valores de CG  
 %       - vet_altitude: valores de altitude  
 %       -vet_Mach:      valores de Mach
 %
-% Obs: o algoritmo procura pontos not√°veis no root-locus para determina√ß√£o
-% dos ganhos desejados. Dependendo do sistema, estes pontos podem n√£o 
-% existir (num sistema inst√°vel, por exemplo). Neste caso o usu√°rio deve
-% selecionar a condi√ß√£o problem√°tica e analisar os resultados com aten√ß√£o.
-% A vari√°vel flag_plot abaixo definida pode ajudar nesta an√°lise
+% Obs: o algoritmo procura pontos not·veis no root-locus para determinaÁ„o
+% dos ganhos desejados. Dependendo do sistema, estes pontos podem n„o 
+% existir (num sistema inst·vel, por exemplo). Neste caso o usu·rio deve
+% selecionar a condiÁ„o problem·tica e analisar os resultados com atenÁ„o.
+% A vari·vel flag_plot abaixo definida pode ajudar nesta an·lise
 %--------------------------------------------------------------------------
 
 clear all
@@ -29,39 +29,33 @@ close all
 
 D = DadosMissil;
 D = DadosCGInercia(D);
-D = DadosControle(D);
 
 % Flag para plotagem dos diagramas de root locus e respostas do sistema
-% usado para debug e an√°lise de resultados.
+% usado para debug e an·lise de resultados.
 flag_plot = 0;
 
 % Atuador - modelo de segunda ordem
 wnat = 100*2*pi;                        % (rad/s) banda passante 
 qsiat = sqrt(2)/2;                      % amortecimento
-AT.num = wnat^2;                        % Fun√ß√£o de transfer√™ncia do Atuador
+AT.num = wnat^2;                        % FunÁ„o de transferÍncia do Atuador
 AT.den = [1 (2*wnat*qsiat) wnat^2];
 
-% Centro de Refer√™ncia de Momentos 
+% Centro de ReferÍncia de Momentos 
 CRM = D.CRM(1);
 
-% Pontos usados para c√°lculo dos ganhos do autopiloto
-altitude = [10 100];
+% Pontos usados para c·lculo dos ganhos do autopiloto
+altitude = [500 1000 3000 6000 10000];
 Mach = [0.6 0.75 0.9];
-if D.TTrav < D.TqB/2
-    T0 = D.TTrav;
-else
-    T0 = D.TqB/2 - 0.1;
-end
-VetTmp = [T0 ...
-          D.TqB/2 ...
+VetTmp = [D.TTrav ...
+          D.TqB/3 ...
+          2*D.TqB/3 ...
           D.TqB ...
           D.TqB + D.TqS/2 ...
           D.TqB + D.TqS];
             
-% Antiship missile design condition used in the assignment.
-% altitude = 10;
-% Mach = 0.9;
-% VetTmp = [D.TqB];
+% altitude = 1000
+% Mach = 0.8
+% VetTmp = 3
       
 vet_I = interp1(D.IMissil(:,1), D.IMissil(:,3), VetTmp);
 vet_m = interp1(D.VProp(:,1), D.VProp(:,3), VetTmp) + D.mf;
@@ -75,7 +69,7 @@ T_at_k_int = zeros(length(x_CG),length(altitude),length(Mach));
 % Tabela de ganhos da malha externa
 T_at_k_ext = zeros(length(x_CG),length(altitude),length(Mach));
 
-% Inicializa tabela de ganhos do Autopiloto de Acelera√ß√£o
+% Inicializa tabela de ganhos do Autopiloto de AceleraÁ„o
 % Tabela de ganhos da malha interna
 T_ac_k_int = zeros(length(x_CG),length(altitude),length(Mach));
 
@@ -84,20 +78,20 @@ T_ac_k_ext = zeros(length(x_CG),length(altitude),length(Mach));
 
 % Loops de projeto do autopiloto
 
-for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
+for i_cg = 1:length(x_CG)               % posiÁ„o de CG
     for i_alt = 1:length(altitude)      % altitude
         for i_mach = 1:length(Mach)     % Mach
             
-            % Grandezas dependentes do tempo de queima e posi√ß√£o do CG
+            % Grandezas dependentes do tempo de queima e posiÁ„o do CG
             m = vet_m(i_cg);
             Iy = vet_I(i_cg);
             dxcg = (x_CG(i_cg) - CRM)/D.DRef;
             
-            % C√°lculo das fun√ß√µes de transfer√™ncia de curto-per√≠odo
+            % C·lculo das funÁıes de transferÍncia de curto-perÌodo
             [Din_acel, Din_theta, Din_alfa, Din_q] = FTransDin(Mach(i_mach), ...
                 altitude(i_alt), m, Iy, dxcg, D.DRef, D.SRef);
 
-% Controle de atitude, realimenta√ß√£o com gir√¥metro
+% Controle de atitude, realimentaÁ„o com girÙmetro
 %
 %            e       ea  ed            dlt             q
 %  ref --->O-->[ampl]-->O-->[ atuador ]---[ dinamica ]---[1/s]-+---> theta
@@ -106,15 +100,15 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
 %          +<--------------------------------------------------+
             
             
-            % Define fun√ß√£o e transfer√™ncia do Atuador
-            num_at = -AT.num;
+            % Define funÁ„o e transferÍncia do Atuador
+            num_at = AT.num;
             den_at = AT.den;            
             At = tf(num_at,den_at);
             At.InputName = 'ed';  At.OutputName = 'dlt';
        
             % Root locus da malha interna
             
-            % Fun√ß√£o de transfer√™ncia da malha interna
+            % FunÁ„o de transferÍncia da malha interna
             
             % Configura malha interna aberta
             Sum_in_ma = sumblk('ed = ea');
@@ -122,16 +116,16 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             % Conecta blocos da malha interna
             T_in_ma = connect(Din_q,At,Sum_in_ma,'ea','q');
             
-            % Define intervalo de ganhos para c√°lculo do root locus
+            % Define intervalo de ganhos para c·lculo do root locus
             % Kg: ganho do giro
-            Kgmax = 5;
-            dKg = Kgmax/1500;
+            Kgmax = 1;
+            dKg = Kgmax/1000;
             Kg = 0:dKg:Kgmax;
             
-            % Observa√ß√£o importante:
-            % Algoritmo ir√° procurar pontos onde os p√≥los da malha interna
+            % ObservaÁ„o importante:
+            % Algoritmo ir· procurar pontos onde os pÛlos da malha interna
             % se afastam do eixo real. 
-            % Dependendo do sistema, pode ser necess√°rio redimensionar o 
+            % Dependendo do sistema, pode ser necess·rio redimensionar o 
             % intervalo de Kg
             
             % Calcula root locus da malha interna
@@ -143,21 +137,21 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
                 title('Root locus da malha interna')
             end
             
-            % Localiza ganho da malha interna onde p√≥los passam a ter 
-            % parte imagin√°ria n√£o-nula.
+            % Localiza ganho da malha interna onde pÛlos passam a ter 
+            % parte imagin·ria n„o-nula.
             
-            % Determina qual o p√≥lo converge para eixo real (dominante):
-            n = find(imag(R_in(:,size(R_in,2))) == 0);
+            % Determina qual o pÛlo converge para eixo real (dominante):
+            n = find(imag(R_in(:,length(R_in))) == 0);
             
-            % Determina ganho onde p√≥lo dominante chega ao eixo real
+            % Determina ganho onde pÛlo dominante chega ao eixo real
             i = find(imag(R_in(n(1),:))==0);
 
-            Kat = Kg(i(1));         % Valor nominal do m√©todo
-            Kat = 4*Kg(i(1));       % Fator emp√≠rico (fator 2 determinado
+            Kat = Kg(i(1));         % Valor nominal do mÈtodo
+            Kat = 2*Kg(i(1));       % Fator empÌrico (fator 2 determinado
                                     % por tentativa e erro);
 
             % Determina ponto da tabela de ganhos da malha interna dos
-            % autopilotos de atitude e acelera√ß√£o
+            % autopilotos de atitude e aceleraÁ„o
             T_at_k_int(i_cg,i_alt,i_mach) = Kat;
             T_acel_k_int(i_cg,i_alt,i_mach) = Kat;
 
@@ -168,9 +162,9 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             
             % Root locus da malha externa do controle de atitude
             
-            % Malha interna, controle de atitude/acelera√ß√£o
+            % Malha interna, controle de atitude/aceleraÁ„o
             % Incorpora ganho da malha interna (Kat) no modelo do atuador
-            num_at = -AT.num*Kat;
+            num_at = AT.num*Kat;
             At = tf(num_at,den_at);
             At.InputName = 'ed';  At.OutputName = 'dlt';
             
@@ -178,7 +172,7 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             Sum_in_mf = sumblk('ed = ea-q');
             
             % Conecta blocos da malha interna
-            % Fun√ß√£o de transfer√™ncia q x ea (ea -> q)
+            % FunÁ„o de transferÍncia q x ea (ea -> q)
             T_in_mf = connect(Din_q,At,Sum_in_mf,'ea','q');
             
             % Resposta degrau da malha interna
@@ -193,14 +187,14 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             
             % Malha externa, controle de atitude
             
-            % Integrador, fun√ß√£o de transfer√™ncia theta x q (q -> theta)
+            % Integrador, funÁ„o de transferÍncia theta x q (q -> theta)
             num_integ = 1;
             den_integ = [1  0];
             Integ = tf(num_integ,den_integ);
             Integ.InputName = 'q';  Integ.OutputName = 'theta';
             
             % Amplificador
-            % Fun√ß√£o de transfer√™ncia ea x e (e -> ea)
+            % FunÁ„o de transferÍncia ea x e (e -> ea)
             num_amp = 1;
             den_amp = 1;
             Amp = tf(num_amp,den_amp);
@@ -211,21 +205,21 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             Sum_out_ma = sumblk('e = ref');
             
             % Conecta blocos da malha externa aberta
-            % Fun√ß√£o de transfer√™ncia theta x ref (ref -> theta)
+            % FunÁ„o de transferÍncia theta x ref (ref -> theta)
             T_out_ma = connect(Amp,T_in_mf,Integ,Sum_out_ma,'ref','theta');
             
             % Root locus da malha externa de atitude
             
-            % Define intervalo de ganhos para c√°lculo do root locus
+            % Define intervalo de ganhos para c·lculo do root locus
             % Kg: ganho do giro
-            Kmax = 2000;
-            dK = Kmax/1500;
+            Kmax = 1000;
+            dK = Kmax/10000;
             K = 0:dK:Kmax;
             
-            % Observa√ß√£o importante:
-            % Algoritmo ir√° procurar pontos onde os p√≥los da malha externa
-            % t√™m fator de amortecimento de 0,7
-            % Dependendo do sistema, pode ser necess√°rio redimensionar o 
+            % ObservaÁ„o importante:
+            % Algoritmo ir· procurar pontos onde os pÛlos da malha externa
+            % tÍm fator de amortecimento de 0,7
+            % Dependendo do sistema, pode ser necess·rio redimensionar o 
             % intervalo de K
               
             % Calcula root locus da malha externa de atitude
@@ -236,24 +230,16 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
                 title(['Root locus da malha externa - ' str_ganho_in]);
             end
             
-            % Determina qual p√≥lo tende para o semi-plano direito com o 
+            % Determina qual pÛlo tende para o semi-plano direito com o 
             % aumento do ganho
-            n = find(real(R_out(:,size(R_out,2))) > 0 );
-            if isempty(n)
-                [~, n] = max(real(R_out(:,size(R_out,2))));
-            end
+            n = find(real(R_out(:,length(R_out))) > 0 );
             
-            % Para este p√≥lo, determina o ganho para o qual o fator de
-            % amortecimento associado a este p√≥lo tem valor 0,7
+            % Para este pÛlo, determina o ganho para o qual o fator de
+            % amortecimento associado a este pÛlo tem valor 0,7
             Qsi_at = abs(-real(R_out(n(1),:))) ./ ...
                      sqrt(real(R_out(n(1),:)).^2 + imag(R_out(n(1),:)).^2);
             i = find(Qsi_at < 0.7);
-            if isempty(i)
-                [~, i] = min(abs(Qsi_at - 0.7));
-                KAmp = K(i);
-            else
-                KAmp = K(i(1));
-            end
+            KAmp = K(i(1));
             
             % Determina ponto da tabela da malha externa de atitude
             T_at_k_ext(i_cg,i_alt,i_mach) = KAmp;
@@ -288,7 +274,7 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
                 title(['Resposta degrau malha externa, ' str_ganho_out]);
             end
             
-            % Controle de acelera√ß√£o, realimenta√ß√£o com gir√¥metro
+            % Controle de aceleraÁ„o, realimentaÁ„o com girÙmetro
             %
             %            e       ea  ed            dlt
             %  Aref --->O-->[K/s]-->O-->[ atuador ]------+-->[ din_az]---+-> Az
@@ -299,11 +285,11 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             %           +<----------------------[acelerometro]-----------+
             
             
-            % Malha interna: igual √† do controle de acelera√ß√£o, realocada
+            % Malha interna: igual ‡ do controle de aceleraÁ„o, realocada
             
-            % Malha interna, controle de acelera√ß√£o
-            % Redefine fun√ß√£o de transfer√™ncia do atuador: ed -> dlt
-            num_at = -AT.num*Kat*2;
+            % Malha interna, controle de aceleraÁ„o
+            % Redefine funÁ„o de transferÍncia do atuador: ed -> dlt
+            num_at = AT.num*Kat;
             At = tf(num_at,den_at);
             At.InputName = 'ed';  At.OutputName = 'dlt';
             
@@ -311,10 +297,10 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             Sum_ac_in_mf = sumblk('ed = ea-q');
             
             % Conecta blocos da malha interna
-            % Fun√ß√£o de transfer√™ncia ea -> dlt
+            % FunÁ„o de transferÍncia ea -> dlt
             T_ac_in_mf = connect(Din_q,At,Sum_ac_in_mf,'ea','dlt');
                         
-            % Define fun√ß√£o de transfer√™ncia do amplificador/integrador 
+            % Define funÁ„o de transferÍncia do amplificador/integrador 
             % da malha externa: e -> ea
             num_amp = -1;
             den_amp = [1  0];
@@ -322,60 +308,47 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
             Amp.InputName = 'e';
             Amp.OutputName = 'ea';
             
-            % Configura malha externa de acelera√ß√£o como aberta
+            % Configura malha externa de aceleraÁ„o como aberta
             Sum_ac_out_ma = sumblk('e = Aref');
             
-            % Conecta blocos da malha externa de acelera√ß√£o, aberta
-            % Fun√ß√£o de transfer√™ncia Aref -> Az          
+            % Conecta blocos da malha externa de aceleraÁ„o, aberta
+            % FunÁ„o de transferÍncia Aref -> Az          
             T_ac_out_ma = connect(Amp,T_ac_in_mf,Din_acel,Sum_ac_out_ma,'Aref','Az');
             
-            % Root locus da malha externa de acelera√ß√£o
+            % Root locus da malha externa de aceleraÁ„o
             
-            % Define intervalo de ganhos para c√°lculo do root locus
+            % Define intervalo de ganhos para c·lculo do root locus
             % K: ganho do integrador da malha externa
-            Kmax = 5;
-            dK = Kmax/1500;
+            Kmax = 20;
+            dK = Kmax/10000;
             K = 0:dK:Kmax;
             
-            % Calcula root locus da malha externa de acelera√ß√£o
+            % Calcula root locus da malha externa de aceleraÁ„o
             R_ac_out = rlocus(T_ac_out_ma,K);
             
             if flag_plot
                 figure;
                 rlocusplot(T_ac_out_ma,K); grid; axis('equal');
-                title(['Root locus da malha externa de acelera√ß√£o - ' str_ganho_in]);
+                title(['Root locus da malha externa de aceleraÁ„o - ' str_ganho_in]);
             end
             
-            % Determina qual p√≥lo tende para o semi-plano direito com o 
+            % Determina qual pÛlo tende para o semi-plano direito com o 
             % aumento do ganho            
-            n = find(real(R_ac_out(:,size(R_ac_out,2))) > 0 );
-            if isempty(n)
-                [~, n] = max(real(R_ac_out(:,size(R_ac_out,2))));
-            else
-                n = n(1);
-            end
+            n = find(real(R_ac_out(:,length(R_ac_out))) > 0 );
+            n = n(1);
             
-            % Para este p√≥lo, determina o ganho para o qual o fator de
-            % amortecimento associado a este p√≥lo tem valor 0,7
+            % Para este pÛlo, determina o ganho para o qual o fator de
+            % amortecimento associado a este pÛlo tem valor 0,7
             Qsi_ac = abs(real(R_ac_out(n,:))) ./ ...
                      sqrt(real(R_ac_out(n,:)).^2 + imag(R_ac_out(n,:)).^2);
             i = find(Qsi_ac < 0.7);
-            if isempty(i)
-                [~, i] = min(abs(Qsi_ac - 0.7));
-                KAmp = K(i);
-            else
-                KAmp = K(i(1));
-            end
+            KAmp = K(i(1));
             
-            % Ajuste fino em torno do ganho do root locus para manter a
-            % malha de aceleracao estavel e com banda maior que 0,5 Hz.
-            KAmp = min(KAmp, 0.025);
-
-            % Define ganho da malha externa de acelera√ß√£o
+            % Define ganho da malha externa de aceleraÁ„o
             T_acel_k_ext(i_cg,i_alt,i_mach) = KAmp;
             
             if flag_plot
-                str_ganho_ac_out = ['ganho da malha externa de acelera√ß√£o: ' num2str(KAmp)];
+                str_ganho_ac_out = ['ganho da malha externa de aceleraÁ„o: ' num2str(KAmp)];
                 disp(str_ganho_ac_out);
                 
                 % Resposta degrau de malha fechada
@@ -389,12 +362,12 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
                 % Configura malha externa como fechada
                 Sum_ac_out_mf = sumblk('e = Aref-Az');
                 
-                % Conecta malha externa de acelera√ß√£o
-                % Fun√ß√£o de transfer√™ncia Az x Aref (Aref -> Az)
+                % Conecta malha externa de aceleraÁ„o
+                % FunÁ„o de transferÍncia Az x Aref (Aref -> Az)
                 T_ac_out_mf = connect(Amp,T_ac_in_mf,Din_acel,Sum_ac_out_mf,'Aref','Az');
                 
                 % Resposta degrau
-                t = 0:0.01:4;
+                t = 0:0.1:4;
                 u = ones(size(t));
                 y = lsim(T_ac_out_mf,u,t);
                 figure
@@ -408,10 +381,10 @@ for i_cg = 1:length(x_CG)               % posi√ß√£o de CG
                    ' Ki= ' num2str(T_at_k_int(i_cg, i_alt, i_mach)) ...
                    ' Ke_at= ' num2str(T_at_k_ext(i_cg, i_alt, i_mach)), ... 
                    ' Ke_ac= ' num2str(T_acel_k_ext(i_cg, i_alt, i_mach))]);
-               % if flag_plot
-               %     disp('Pressione qualquer tecla');
-               %     pause;
-               % end
+               if flag_plot
+                   disp('Pressione qualquer tecla');
+                   pause;
+               end
         end
     end
 end
@@ -420,9 +393,11 @@ end
 vet_x_CG = x_CG;
 vet_altitude = altitude;
 vet_Mach = Mach;
-save autopiloto_antiship.mat T_acel_k_ext T_at_k_ext T_at_k_int T_acel_k_int ...
-      vet_x_CG vet_altitude vet_Mach VetTmp;
 save autopiloto.mat T_acel_k_ext T_at_k_ext T_at_k_int T_acel_k_int ...
-      vet_x_CG vet_altitude vet_Mach VetTmp;
+      vet_x_CG vet_altitude vet_Mach;
 
-%ExportAntishipAutopilotFigures('autopiloto_antiship.mat', D, AT);
+if flag_plot
+   PlotAP('autopiloto.mat');
+end
+
+
