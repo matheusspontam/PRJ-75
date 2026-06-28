@@ -476,13 +476,13 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 </div>
 <h4>Resultado corrigido</h4>
 <ul>
-<li><b>Omnidirecional</b>: 0°, 45° e 90° dão resultados idênticos (tempos de voo 184/217/240/258 s iguais) — o engajamento é invariante à rotação quando o míssil é lançado apontado ao alvo.</li>
+<li><b>Quase omnidirecional</b>: azimutes de 0° a 150° bigam com resultados idênticos (tempos de voo iguais por simetria) — o engajamento é invariante à rotação quando o míssil é lançado apontado ao alvo. Só o lançamento exatamente <b>por trás (180°, voando de volta)</b> falha — caso de borda.</li>
 <li><b>Alcance máximo ~72–76 km</b>: biga a 55/65/72 km, erra a 80 km. Excede o requisito de 70 km.</li>
 <li><b>Limitado pelo sustainer</b>: ele queima até ~232 s; a 72 km o impacto é em 240 s (no limite da queima); a 80 km o motor apaga antes, o míssil desacelera e perde autoridade de controle → miss.</li>
 </ul>
 <figure class="plot">
   <img src="Plots_Relevantes/09_envelope_antinavio.png" alt="Envelope de engajamento antinavio">
-  <figcaption><b>Plot 09 — Envelope de engajamento</b>: zona de bingo (verde) omnidirecional até ~76 km; misses (×) a 80 km. O limite de alcance é dado pela queima do sustainer.</figcaption>
+  <figcaption><b>Plot 09 — Envelope de lançamento (estilo da Fig. 10.105 da apostila)</b>: cada ponto azul é um lançamento que biga, em downrange × crossrange (m); o navio (quadrado preto) está na origem. Disco quase completo até ~72–76 km (azimutes 0–150°); só o lançamento exatamente por trás (180°) falha. O limite de alcance é dado pela queima do sustainer (~232 s).</figcaption>
 </figure>
 
 <!-- ============ 11 ============ -->

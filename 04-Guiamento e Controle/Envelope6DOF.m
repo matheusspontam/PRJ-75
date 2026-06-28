@@ -67,8 +67,8 @@ C.AltCruz = 30;                 % cruzeiro sea-skim (NAO = Za0)
 
 % Grade do envelope (alcance ate ~70 km; setor frontal - antinavio nao
 % acerta atras). Coarse p/ runtime; refine se quiser mais resolucao.
-VDist = [55000 65000 72000 80000 88000];
-VAngApres = [0 45 90]*pi/180;
+VDist = [8000 18000 30000 45000 60000 72000 80000];
+VAngApres = [0:30:180]*pi/180;
 
 % VDist = [1500]
 % VAngApres = 150*pi/180
@@ -137,28 +137,7 @@ FigName = [Name '.fig'];
     
 save(FileName,'D','Titulo','Resultado') 
 hgsave(Fig, FigName);
-% --- plot LIMPO do envelope (zona de engajamento, em km) ---
-killR=VDist(any(Resultado==1,2)); missR=VDist(any(Resultado==0,2));
-if isempty(missR); Rmax=max(killR)/1e3; else; Rmax=(max(killR)+min(missR))/2/1e3; end
-FigC=figure('Position',[60 60 820 680]); hold on; axis equal; grid on;
-th=linspace(0,2*pi,200);
-patch(Rmax*cos(th),Rmax*sin(th),[.85 1 .85],'EdgeColor','none','FaceAlpha',.5);
-hk=[]; hm=[];
-for ia=1:length(VAngApres)
-  for id=1:length(VDist)
-    if isnan(Resultado(id,ia)); continue; end
-    dr=VDist(id)*cos(VAngApres(ia))/1e3; cr=VDist(id)*sin(VAngApres(ia))/1e3;
-    if Resultado(id,ia)==1
-      hk=plot(dr,cr,'go','MarkerFaceColor','g','MarkerSize',8); plot(dr,-cr,'go','MarkerFaceColor','g','MarkerSize',8);
-    else
-      hm=plot(dr,cr,'rx','MarkerSize',11,'LineWidth',2); plot(dr,-cr,'rx','MarkerSize',11,'LineWidth',2);
-    end
-  end
-end
-hc=plot(Rmax*cos(th),Rmax*sin(th),'--','Color',[0 .5 0],'LineWidth',1.3);
-hs=plot(0,0,'ks','MarkerFaceColor','k','MarkerSize',12); text(2,3,'navio','FontSize',10);
-xlabel('Downrange (km)'); ylabel('Crossrange (km)');
-title('Envelope de engajamento antinavio (lancado apontado p/ o alvo)');
-legend([hk hm hc hs],{'bingo','miss',sprintf('alcance max ~%.0f km',Rmax),'navio'},'Location','southwest');
-exportgraphics(FigC,'C:/Users/Savio/Documents/PRJ-75/Plots_Relevantes/09_envelope_antinavio.png','Resolution',140);
+% Estilo do prof: pontos azuis dos lancamentos que bigam (em metros).
+figure(Fig); plot(0,0,'ks','MarkerFaceColor','k','MarkerSize',10);  % navio na origem
+exportgraphics(Fig,'C:/Users/Savio/Documents/PRJ-75/Plots_Relevantes/09_envelope_antinavio.png','Resolution',140);
 disp('ENVELOPE OK');
