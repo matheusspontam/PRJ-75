@@ -20,11 +20,19 @@ D.mf = D.m - D.m_prop0;
 D.L = L_Cont + L_CDG + L_Booster + L_Sustainer + L_Tub
 
 
-xcg_Cont = L_Cont/2;
-xcg_CDG = L_Cont + L_CDG/2;
-xcg_MOTB = L_Cont + L_CDG + L_Booster/2;
-xcg_MOTS = L_Cont + L_CDG + L_Booster + L_Sustainer/2;
-xcg_Tub = L_Cont + L_CDG + L_Booster + L_Sustainer + L_Tub/2;
+% Arranjo Exocet (nariz -> cauda): Cont, CDG, Sustentador, Booster, Tubeira.
+% O motor de cruzeiro/sustentador fica a frente; o booster (motor de
+% aceleracao) fica na traseira, antes da tubeira. Esta ordem garante que o
+% CG ande para frente (x diminui) conforme o propelente e' queimado.
+% Convencao de sinal: x medido NEGATIVO do nariz para a cauda, igual ao
+% CRM (= -XCG do DATCOM). Assim dxcg=(x_CG-CRM)/DRef fica da ordem de
+% +/-1 calibre. (A versao anterior usava x positivo, inconsistente com o
+% CRM negativo, gerando dxcg ~ 16 calibres e dinamica/ganhos errados.)
+xcg_Cont = -(L_Cont/2);
+xcg_CDG = -(L_Cont + L_CDG/2);
+xcg_MOTS = -(L_Cont + L_CDG + L_Sustainer/2);
+xcg_MOTB = -(L_Cont + L_CDG + L_Sustainer + L_Booster/2);
+xcg_Tub = -(L_Cont + L_CDG + L_Sustainer + L_Booster + L_Tub/2);
 
 D.xcg0 = (xcg_Cont*m_Cont + xcg_CDG*m_CDG + xcg_MOTB*m_MOTB + ...
           xcg_MOTS*m_MOTS + xcg_Tub*M_Tub)/D.m;
