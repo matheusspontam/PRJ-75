@@ -12,7 +12,13 @@ Height = 10;
 [T,VSom,P,rho,nu,mu] = atmosisa(Height);
 
 Aer = load('M_aed.mat');
-[DeltaX, iDeltaX] = max(Aer.dados.delta);
+% Deflexao maxima usada na avaliacao da manobra.
+% A tabela aerodinamica (Aer.dados.delta) vai ate 20 deg, mas a aleta do
+% missil so deflete ate D.Dlt_max = 10 deg (definido em DadosControle.m).
+% Por isso a manobra maxima REAL e avaliada com 10 deg, e nao com o maximo
+% da tabela -- usar 20 deg superestimava o G em ~2x.
+DeltaX = 10;                                    % graus (= D.Dlt_max)
+[~, iDeltaX] = min(abs(Aer.dados.delta - DeltaX));
 
 NMach = length(Aer.dados.mach);
 NAlpha = length(Aer.dados.alpha);
