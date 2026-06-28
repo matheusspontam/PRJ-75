@@ -46,7 +46,7 @@ CRM = D.CRM(1);
 
 % Pontos usados para cálculo dos ganhos do autopiloto
 altitude = [10 100];
-Mach = [0.6 0.75 0.9];
+Mach = [0.6 0.75 0.9 1.0];
 if D.TTrav < D.TqB/2
     T0 = D.TTrav;
 else
