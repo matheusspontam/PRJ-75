@@ -57,7 +57,12 @@
   hr{border:none;border-top:1px solid var(--line);margin:32px 0}
   .tag{font-family:monospace;font-size:12.5px;color:var(--acc2)}
   ul{margin:8px 0;padding-left:22px} li{margin:4px 0}
-  @media(max-width:900px){nav{display:none}main{padding:24px 18px}}
+  figure.plot{margin:18px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+  figure.plot img{width:100%;height:auto;border-radius:6px;display:block;background:#fff}
+  figure.plot figcaption{color:var(--mut);font-size:13px;margin-top:9px;text-align:center}
+  figure.plot figcaption b{color:var(--acc2)}
+  .twofig{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:900px){nav{display:none}main{padding:24px 18px}.twofig{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -124,6 +129,10 @@
 <tr><td>Cruzeiro mantido</td><td>Mach 0,9</td><td class="green">sustainer segura 0,90 (empuxo = arrasto de trim)</td><td>07 Mach</td></tr>
 </table>
 <p class="muted">8 plots: <code>01_Gmax</code>, <code>02_coef_aerodinamicos</code>, <code>03_ganhos_autopiloto</code>, <code>04_degrau_autopiloto</code>, <code>05_rootlocus</code>, <code>06_guiamento_trajetoria</code>, <code>07_guiamento_series</code>, <code>08_degrau_5g</code>.</p>
+<figure class="plot">
+  <img src="Plots_Relevantes/06_guiamento_trajetoria.png" alt="Trajetória do guiamento - bingo">
+  <figcaption><b>Plot 06 — Voo homing (a prova do bingo).</b> Trajetória horizontal (a linha azul chega ao alvo ×), perfil de altitude sea-skim (~26 m) e velocidade (segura o cruzeiro). Miss = 17,9 m.</figcaption>
+</figure>
 
 <!-- ============ 3 ============ -->
 <h2 class="sec" id="arq">3. Arquitetura do código</h2>
@@ -208,6 +217,10 @@ end</pre>
 <p>Para cada fase de CG e cada Mach, acha o <b>α de trim a leme máximo (20°)</b> resolvendo <code>Cm = 0</code>, e converte o <code>CN</code> nesse α em <b>g</b>:</p>
 <div class="eq">Cm(δ=20°,α) = Cm₀ − (XCG − CRM)·CN = 0  →  α_trim  →  Gmax = q·S·CN(α_trim)/(m·g)</div>
 <p><b>Atenção (gotcha):</b> a fórmula do prof usa <code>(XCG − CRM)</code> <i>sem</i> dividir por <code>DRef</code> — ela só é exata quando <b>CG = CRM</b>. Por isso rodamos o DATCOM no próprio <code>xcg₀</code> (CRM = xcg₀ = −2,65), eliminando a transferência de momento. Resultado: <b>todas as 5 curvas acham trim dentro de ±20°</b>, Gmax 2→7,4 g, terminal ~5,6 g.</p>
+<figure class="plot">
+  <img src="Plots_Relevantes/01_Gmax_manobra_maxima.png" alt="Manobra máxima vs Mach por fase de CG">
+  <figcaption><b>Plot 01 — Manobra máxima (g) × Mach</b>, para as 5 fases de CG (lançamento 2,66 m → terminal 1,70 m). Todas acham equilíbrio; a fase terminal a Mach 0,9 dá ~5,6 g (≥ 5 g).</figcaption>
+</figure>
 
 <!-- ============ 6 ============ -->
 <h2 class="sec" id="aero">6. Aerodinâmica — DATCOM & <code>M_aed.mat</code></h2>
@@ -220,6 +233,10 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <p>Conteúdo de <code>M_aed.mat</code>: <code>M_CN</code> (força normal), <code>M_CM</code> (momento de arfagem), <code>M_CA</code>/<code>M_CD</code> (axial/arrasto), <code>M_CL</code>, <code>M_XCP</code> (centro de pressão), e as derivadas <code>M_CNA</code>, <code>M_CMA</code>, <code>M_CMQ</code>. O campo <code>dados.XCG</code> é o centro de referência de momentos do DATCOM.</p>
 <p><b><code>calcula_coef(δ,Mach,α)</code></b> interpola essas tabelas (<code>interpn</code>) e calcula as <b>derivadas de estabilidade</b> por diferenças finitas (<code>dCN_da</code>, <code>dCM_da</code>, <code>dCN_dd</code>, <code>dCM_dd</code>, <code>dCN_dM</code>…). É a ponte entre o DATCOM e as funções de transferência.</p>
 <p class="muted">No plot 02 vê-se: <b>Cₙ × α linear</b> (sustentação), <b>Cₘ × α com inclinação negativa</b> (estaticamente estável), <b>Cᴅ × α parabólico</b> (drag bucket no α=0).</p>
+<figure class="plot">
+  <img src="Plots_Relevantes/02_coef_aerodinamicos.png" alt="Coeficientes aerodinâmicos vs alfa">
+  <figcaption><b>Plot 02 — Coeficientes aerodinâmicos (DATCOM, XCG=2,65)</b>: força normal Cₙ, momento Cₘ (δ=0, inclinação negativa = estável) e arrasto Cᴅ × α, para Mach 0,6 e 1,0.</figcaption>
+</figure>
 
 <!-- ============ 7 ============ -->
 <h2 class="sec" id="din">7. Dinâmica 6DOF & funções de transferência</h2>
@@ -260,11 +277,19 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <tr><td><b>Externo de atitude</b></td><td>proporcional (Amp=1) + integrador <code>q→θ</code> (1/s)</td><td><code>KAt</code> = <code>T_at_k_ext</code></td><td>ganho onde o modo de manobra atinge ζ ≈ 0,5</td></tr>
 <tr><td><b>Externo de aceleração</b></td><td>integrador externo <code>−1/s</code></td><td><code>KAz</code> = <code>T_acel_k_ext</code></td><td><b>maior ganho com ζ_dom ≥ 0,6</b>, limitado por 0,5·K_instab (zero de fase não-mínima)</td></tr>
 </table>
+<figure class="plot">
+  <img src="Plots_Relevantes/05_rootlocus.png" alt="Root locus das três malhas">
+  <figcaption><b>Plot 05 — Root locus das 3 malhas</b> (□ = ganho escolhido): interna de girômetro (amortece o curto-período), externa de atitude (ζ≈0,5) e externa de aceleração (note o zero de fase não-mínima que puxa o ramo para o semiplano direito).</figcaption>
+</figure>
 
 <div class="card">
 <h4>Escalonamento de ganhos (gain scheduling)</h4>
 <p>Os ganhos mudam muito com o <b>Mach</b> (pressão dinâmica) e o <b>CG</b> (margem), pouco com a altitude. O <code>autopiloto.mat</code> guarda tabelas 3D <code>T_xxx(i_cg, i_alt, i_mach)</code> com <code>vet_Mach=[0.6 0.75 0.9]</code>, <code>vet_altitude=[10 100]</code>, <code>vet_x_CG</code> (6 pontos). O Simulink interpola (<code>interpn</code>) o ganho pela condição instantânea. <span class="muted">Visualize com <code>PlotGanhosMach</code> (ganho × Mach, por CG) — o <code>PlotAP</code> do prof plota ganho × altitude (quase reto, pois só há 2 altitudes).</span></p>
 </div>
+<figure class="plot">
+  <img src="Plots_Relevantes/03_ganhos_autopiloto.png" alt="Curvas de ganho do autopiloto">
+  <figcaption><b>Plot 03 — Curvas de ganho (gain scheduling) × Mach</b>, uma curva por CG: ganho interno (girômetro), externo de atitude e externo de aceleração. O ganho varia forte com Mach e CG.</figcaption>
+</figure>
 
 <h3>Desempenho (plots 04 e 08)</h3>
 <ul>
@@ -272,6 +297,16 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <li><b>Degrau de aceleração</b>: DC=1,00, afundamento inicial (zero não-mínimo), ~8–10% overshoot, banda 0,7–1,3 Hz.</li>
 <li><b>Degrau de 5 g</b> (plot 08): sobe a 5,48 g e assenta em 5 g, <b>mais rápido que o requisito de 0,5 Hz</b> → atende manobra + banda de uma vez.</li>
 </ul>
+<div class="twofig">
+  <figure class="plot">
+    <img src="Plots_Relevantes/04_degrau_autopiloto.png" alt="Respostas ao degrau">
+    <figcaption><b>Plot 04 — Degrau</b>: atitude (8% overshoot + cauda lenta do zero de incidência) e aceleração (afundamento inicial do zero não-mínimo). Ambas DC=1,00.</figcaption>
+  </figure>
+  <figure class="plot">
+    <img src="Plots_Relevantes/08_degrau_5g.png" alt="Resposta a degrau de 5 g">
+    <figcaption><b>Plot 08 — Degrau de 5 g</b>: a Simulação (azul) atinge 5 g mais rápido que o Requisito de 0,5 Hz (preto) → manobra + banda atendidas.</figcaption>
+  </figure>
+</div>
 
 <!-- ============ 9 ============ -->
 <h2 class="sec" id="alt">9. Controle de altitude — sea-skimming</h2>
@@ -290,6 +325,10 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <li><b>Condições de parada</b>: Bingo, Impacto com solo, Fuga do alvo, V &lt; Vmin.</li>
 </ul>
 <p class="muted">No nosso voo: o alvo está quase à frente, então a manobra terminal é pequena (Az ≈ 0 no fim) e o voo é quase reto — por isso o laço de aceleração mal é exercitado e o bingo sai liso. As oscilações em 0–40 s são a transição de boost/baixo-Mach (ganhos só valem Mach 0,6–0,9, extrapolam abaixo).</p>
+<figure class="plot">
+  <img src="Plots_Relevantes/07_guiamento_series.png" alt="Séries temporais do voo guiado">
+  <figcaption><b>Plot 07 — Séries temporais do voo</b>: altitude × referência (sea-skim), atitude θ, Mach (segura 0,90), aceleração Az, deflexão do leme e ângulo de ataque. Transiente de boost em 0–40 s, depois cruzeiro liso.</figcaption>
+</figure>
 
 <!-- ============ 11 ============ -->
 <h2 class="sec" id="files">11. O que cada arquivo faz</h2>
