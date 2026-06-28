@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRJ-75 — Domínio do Código e Teoria · Míssil Antinavio MANSUP</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#161d26; --panel2:#1c2530; --ink:#e6edf3; --mut:#9fb0c0;
+    --acc:#4ea1ff; --acc2:#37d39b; --warn:#ffb454; --bad:#ff6b6b; --line:#2a3543;
+    --code:#0b0f14;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;font-size:15.5px}
+  .wrap{display:flex;max-width:1500px;margin:0 auto}
+  nav{position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;
+    width:280px;flex:0 0 280px;padding:22px 16px;border-right:1px solid var(--line);
+    background:var(--panel);font-size:13.5px}
+  nav h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}
+  nav a{display:block;color:var(--ink);text-decoration:none;padding:4px 8px;border-radius:6px;opacity:.85}
+  nav a:hover{background:var(--panel2);opacity:1;color:var(--acc)}
+  nav a.sub{padding-left:20px;font-size:12.8px;opacity:.7}
+  main{flex:1;min-width:0;padding:34px 46px 120px}
+  h1{font-size:30px;margin:0 0 6px;line-height:1.2}
+  .sub1{color:var(--mut);font-size:16px;margin-bottom:26px}
+  h2.sec{font-size:23px;margin:46px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--acc)}
+  h3{font-size:18px;margin:28px 0 8px;color:var(--acc2)}
+  h4{font-size:15.5px;margin:18px 0 6px;color:var(--warn)}
+  p{margin:10px 0}
+  code{background:var(--code);padding:1.5px 6px;border-radius:5px;font-family:"SF Mono",Consolas,Menlo,monospace;
+    font-size:13px;color:#ffd6a5}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+    font-family:"SF Mono",Consolas,Menlo,monospace;font-size:13px;line-height:1.5;color:#cfe3ff}
+  pre .c{color:#6b7d8f}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13.6px;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--acc);position:sticky;top:0}
+  tr:nth-child(even){background:#13191f}
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--acc);
+    border-radius:10px;padding:14px 18px;margin:16px 0}
+  .card.ok{border-left-color:var(--acc2)} .card.warn{border-left-color:var(--warn)} .card.bad{border-left-color:var(--bad)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;margin:2px 3px}
+  .pill.ok{background:#10301f;color:var(--acc2)} .pill.b{background:#10243d;color:var(--acc)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:14px 0}
+  .kv{background:var(--panel2);border-radius:8px;padding:12px 14px}
+  .kv b{color:var(--acc);font-size:20px;display:block} .kv span{color:var(--mut);font-size:12.5px}
+  .qa{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:12px 0;overflow:hidden}
+  .qa summary{cursor:pointer;padding:13px 18px;font-weight:600;color:var(--ink);background:var(--panel2);list-style:none}
+  .qa summary::before{content:"▸ ";color:var(--acc)}
+  .qa[open] summary::before{content:"▾ "}
+  .qa summary:hover{color:var(--acc)}
+  .qa .ans{padding:6px 18px 16px}
+  .q{color:var(--warn)}
+  .eq{background:#0b0f14;border-radius:8px;padding:8px 14px;margin:8px 0;font-family:"SF Mono",monospace;font-size:13.5px;color:#cfe3ff;overflow-x:auto}
+  .muted{color:var(--mut)} .accent{color:var(--acc)} .green{color:var(--acc2)} .warnc{color:var(--warn)}
+  hr{border:none;border-top:1px solid var(--line);margin:32px 0}
+  .tag{font-family:monospace;font-size:12.5px;color:var(--acc2)}
+  ul{margin:8px 0;padding-left:22px} li{margin:4px 0}
+  @media(max-width:900px){nav{display:none}main{padding:24px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <h2>Navegação</h2>
+  <a href="#vis">1. Visão geral & missão</a>
+  <a href="#res">2. Resultados (provas)</a>
+  <a href="#arq">3. Arquitetura do código</a>
+  <a href="#dataflow" class="sub">3.1 Padrão de dados D/C/S</a>
+  <a href="#comum" class="sub">3.2 00_Comum + forwarders</a>
+  <h2>Teoria + código</h2>
+  <a href="#prop">4. Propulsão</a>
+  <a href="#massa">5. Massa, CG, inércia, margem</a>
+  <a href="#gmax" class="sub">5.1 Manobra máxima (Gmax)</a>
+  <a href="#aero">6. Aerodinâmica (DATCOM)</a>
+  <a href="#din">7. Dinâmica 6DOF & FTs</a>
+  <a href="#sinal" class="sub">7.1 Convenção de sinal</a>
+  <a href="#ap">8. Autopiloto</a>
+  <a href="#alt">9. Controle de altitude</a>
+  <a href="#gui">10. Guiamento & autodiretor</a>
+  <h2>Referência</h2>
+  <a href="#files">11. Cada arquivo</a>
+  <a href="#slx">12. Modelos Simulink</a>
+  <a href="#dec">13. Decisões & gotchas</a>
+  <a href="#qa">14. Q&A do professor</a>
+  <a href="#run">15. Como rodar</a>
+</nav>
+<main>
+
+<h1>Míssil Antinavio MANSUP — Domínio do Código & Teoria</h1>
+<div class="sub1">PRJ-75 (ITA) · equivalente ao Exocet MM40 · preparação para o questionário oral pós-bingo</div>
+
+<div class="card ok">
+<b>Resumo de uma frase:</b> dimensionamos um míssil antinavio sea-skimming (booster grão-estrela + sustainer end-burner) cujo banco aerodinâmico vem do DATCOM, voa em 6DOF estabilizado por autopilotos de atitude e aceleração projetados por root locus (com escalonamento de ganhos), guiado por navegação proporcional com controle de altitude rasante — e que <b class="green">acerta o alvo a 60 km (miss 17,9 m) mantendo Mach 0,90</b>.
+</div>
+
+<!-- ============ 1 ============ -->
+<h2 class="sec" id="vis">1. Visão geral & missão</h2>
+<p>O míssil reproduz a classe <b>Exocet MM40 / MANSUP</b>: arma antinavio de cruzeiro, lançada, que voa rasante sobre o mar (<i>sea-skimming</i>) para escapar do radar, sobe ("pop-up") só no fim e mergulha no navio. O projeto é dividido em 5 relatórios sequenciais; este documento cobre a cadeia <b>dimensionamento → aerodinâmica → dinâmica 6DOF → autopiloto → guiamento</b>.</p>
+
+<h3>Requisitos de projeto</h3>
+<div class="grid">
+  <div class="kv"><b>5,79 m</b><span>comprimento (L)</span></div>
+  <div class="kv"><b>0,35 m</b><span>diâmetro (D = DRef)</span></div>
+  <div class="kv"><b>70 km</b><span>alcance</span></div>
+  <div class="kv"><b>Mach 0,90</b><span>cruzeiro</span></div>
+  <div class="kv"><b>165 kg</b><span>ogiva (CDG)</span></div>
+  <div class="kv"><b>≈ 10 m</b><span>altitude rasante</span></div>
+  <div class="kv"><b>≥ 5 g</b><span>manobra lateral terminal</span></div>
+  <div class="kv"><b>≥ 0,5 Hz</b><span>banda passante da célula</span></div>
+</div>
+
+<!-- ============ 2 ============ -->
+<h2 class="sec" id="res">2. Resultados — as provas</h2>
+<p>Tudo verificado no estado atual do repositório (branch <code>dimensionamento-mansup-mm40</code>, commits <code>628b7af</code> / <code>b1d650b</code>). Os gráficos estão em <code>Plots_Relevantes/</code>.</p>
+<table>
+<tr><th>Critério</th><th>Exigido</th><th>Obtido</th><th>Onde se vê</th></tr>
+<tr><td>Bingo (acerta o alvo)</td><td>miss &lt; espoleta (20 m)</td><td class="green"><b>17,9 m</b>, Mach 0,90, 207 s, sea-skim ~26 m</td><td>06 trajetória / 07 séries</td></tr>
+<tr><td>Manobra lateral</td><td>≥ 5 g</td><td class="green"><b>~5,6 g terminal</b> (Gmax 2→7,4 g)</td><td>01 Gmax</td></tr>
+<tr><td>Banda passante</td><td>≥ 0,5 Hz</td><td class="green">atitude 2,6–3,6 Hz · aceleração 0,7–1,3 Hz</td><td>04 degrau / 08 degrau 5 g</td></tr>
+<tr><td>Trim (todas as fases de CG)</td><td>dentro de ±20°</td><td class="green">lançamento −18° … terminal −12°</td><td>01 Gmax</td></tr>
+<tr><td>Seguir comando</td><td>DC = 1, estável</td><td class="green">atitude e aceleração DC=1,00, amortecidas</td><td>04 degrau</td></tr>
+<tr><td>Cruzeiro mantido</td><td>Mach 0,9</td><td class="green">sustainer segura 0,90 (empuxo = arrasto de trim)</td><td>07 Mach</td></tr>
+</table>
+<p class="muted">8 plots: <code>01_Gmax</code>, <code>02_coef_aerodinamicos</code>, <code>03_ganhos_autopiloto</code>, <code>04_degrau_autopiloto</code>, <code>05_rootlocus</code>, <code>06_guiamento_trajetoria</code>, <code>07_guiamento_series</code>, <code>08_degrau_5g</code>.</p>
+
+<!-- ============ 3 ============ -->
+<h2 class="sec" id="arq">3. Arquitetura do código</h2>
+<p>Não é um projeto de software — é uma coleção de scripts MATLAB + modelos Simulink que produzem os resultados de cada relatório. As pastas relevantes para esta cadeia:</p>
+<table>
+<tr><th>Pasta</th><th>Papel</th><th>Entry point</th></tr>
+<tr><td><code>00_Comum/</code></td><td><b>Fonte única</b> dos dados do míssil (massa, CG, aero)</td><td>—</td></tr>
+<tr><td><code>02-Dinamica6DOF/</code></td><td>Dinâmica 6DOF em <b>malha aberta</b> (resposta livre do airframe)</td><td><code>VooUnico6DOF</code></td></tr>
+<tr><td><code>03-Autopiloto/</code></td><td><b>Projeto</b> dos autopilotos (root locus) + teste 6DOF</td><td><code>ProjRLocus</code>, <code>VooUnico6DOF</code></td></tr>
+<tr><td><code>04-Guiamento e Controle/</code></td><td>Voo <b>homing completo</b> (malha fechada) — onde biga</td><td><code>VooUnico6DOF</code></td></tr>
+<tr><td><code>RunDatcom2/</code></td><td>Gera o banco aerodinâmico (<code>M_aed.mat</code>) via DATCOM</td><td><code>RunDatcom2.exe</code></td></tr>
+<tr><td><code>Plots_Relevantes/</code></td><td>Prints de todos os gráficos relevantes</td><td>—</td></tr>
+</table>
+
+<h3 id="dataflow">3.1 O padrão de dados D / C / S</h3>
+<p>Toda a cadeia 6DOF/autopiloto/guiamento segue o mesmo fluxo. Entender isto é a chave para ler qualquer script:</p>
+<pre><span class="c">% 1) struct D = TUDO do míssil (parâmetros, CG/inércia, controle)</span>
+D = DadosMissil;            <span class="c">% parâmetros principais e propulsão</span>
+D = DadosCGInercia(D);      <span class="c">% + CG, inércia (5 fases de queima), CRM</span>
+D = DadosControle(D);       <span class="c">% + limites/sobre-ganhos do autopiloto</span>
+<span class="c">% 2) struct C = condições de lançamento (cenário)</span>
+C = CondLanc6DOF;
+<span class="c">% 3) banco aerodinâmico</span>
+load M_aed.mat; D.Cmap = 0;
+load autopiloto.mat         <span class="c">% tabelas de ganho escalonado</span>
+<span class="c">% 4) simula o modelo Simulink</span>
+sim('GuiamentoControle.slx');
+<span class="c">% 5) pós-processa em struct S, depois plota</span>
+SalvaDinamica6DOF;          <span class="c">% empacota tudo em S (timeseries)</span>
+plot6DOF(S);</pre>
+
+<h3 id="comum">3.2 Fonte única (<code>00_Comum/</code>) + forwarders</h3>
+<div class="card">
+<p>O míssil é definido <b>uma vez só</b> em <code>00_Comum/DadosMissilComum.m</code> e <code>DadosCGInerciaComum.m</code>. Cada pasta (02/03/04) tem um <b>forwarder</b> <code>DadosMissil.m</code> / <code>DadosCGInercia.m</code> que faz <code>addpath('..\00_Comum')</code> e chama a versão <code>...Comum</code>. Assim, mudar o dimensionamento num lugar reflete em dinâmica, autopiloto e guiamento ao mesmo tempo.</p>
+<pre>function [D] = DadosMissil
+  addpath(fullfile(fileparts(mfilename('fullpath')),'..','00_Comum'));
+  D = DadosMissilComum;
+end</pre>
+<p class="muted"><b>Regra:</b> editar o míssil SÓ em <code>00_Comum/</code>. O <code>M_aed.mat</code> é copiado para cada pasta (cópias idênticas) porque o Simulink o carrega do diretório local.</p>
+</div>
+
+<!-- ============ 4 ============ -->
+<h2 class="sec" id="prop">4. Propulsão — dois estágios</h2>
+<p>Propulsão sólida em dois pulsos, definida em <code>DadosMissilComum.m</code> no vetor <code>D.VProp = [t  Empuxo  Mprop]</code> (5 linhas que o Simulink interpola no tempo):</p>
+
+<h3>Booster — grão estrela (acelera)</h3>
+<ul>
+<li>Função: tirar o míssil do repouso e levá-lo a <b>~Mach 0,93 em 4 s</b>.</li>
+<li>Grão tipo <b>estrela</b> (área de queima alta → empuxo alto e curto). Volume do grão calculado pela geometria estrela (raio da teia <code>Rw=TqB·Vq</code>, nº de pontas, etc.).</li>
+<li><span class="tag">MpB = 125 kg · EmpB ≈ 67,4 kN · TqB = 4 s · Isp ≈ 220 s</span></li>
+</ul>
+
+<h3>Sustainer — grão end-burner (cruza)</h3>
+<ul>
+<li>Função: manter o cruzeiro a <b>Mach 0,90</b> nos 70 km. Empuxo baixo e longo.</li>
+<li><b>Ponto-chave de projeto:</b> o empuxo do sustainer foi dimensionado para o <b>arrasto de cruzeiro COM sustentação (trim)</b>, não para o arrasto a α=0. <span class="warnc">Esse é o erro clássico</span>: dimensionar pelo Cd de α=0 (~0,42 → ~2,3 kN) deixa o míssil sub-propelido — ele voa em α de trim, o Cd real sobe para ~0,58, o empuxo &lt; arrasto e o míssil <b>desacelera e mergulha</b>. Usamos <code>EmpS</code> = arrasto a Mach 0,9 <b>com trim</b> → equilíbrio empuxo = arrasto a Mach 0,90.</li>
+<li><span class="tag">MpS = 330 kg · EmpS = 3,25 kN · TqS = 228,6 s</span> &nbsp;(<code>TqS = alcance/Vcruz = 70000/(0,9·340)</code>)</li>
+</ul>
+<div class="eq">EmpS = q·S·Cd_trim  &nbsp;|&nbsp;  q = ½ρV²,  V = 0,9·a,  Cd_trim ≈ 0,58  →  MpS = EmpS·TqS /(Isp·g)</div>
+<p class="muted">Massa de lançamento <b>M0 = 930 kg</b> (= Mf 475 kg + propelente 455 kg). O dimensionamento traçável está em <code>02-Dinamica6DOF/dimensionamento_exocet.m</code>.</p>
+
+<!-- ============ 5 ============ -->
+<h2 class="sec" id="massa">5. Massa, CG, inércia, margem estática</h2>
+<p>Em <code>DadosCGInerciaComum.m</code>. Convenção: <b>x = 0 na ponta do nariz, positivo para frente → posições são negativas</b> (mais traseiro = mais negativo). Layout nariz→cauda:</p>
+<table>
+<tr><th>Seção</th><th>Compr. (m)</th><th>Massa (kg)</th><th>Papel</th></tr>
+<tr><td>Cont (guiamento/nariz)</td><td>1,09</td><td>201</td><td>seeker + lastro p/ trazer o CG à frente</td></tr>
+<tr><td>CDG (ogiva)</td><td>0,90</td><td>165</td><td>carga útil</td></tr>
+<tr><td>Sustainer</td><td>2,35</td><td>60 + 330 prop</td><td>motor de cruzeiro</td></tr>
+<tr><td>Booster</td><td>1,25</td><td>35 + 125 prop</td><td>motor de aceleração</td></tr>
+<tr><td>Tubeira</td><td>0,20</td><td>14</td><td>—</td></tr>
+</table>
+<p>O código calcula o CG e a inércia (Ix, Iy) em <b>5 fases de queima</b> (cheio, meio-booster, fim-booster, meio-sustainer, vazio) → tabelas <code>D.CGMissil</code> e <code>D.IMissil</code> que o Simulink interpola no tempo. O CG <b>migra para frente</b> conforme o propelente queima: <span class="tag">xcg₀ = −2,65 m → −1,70 m no fim</span>.</p>
+
+<div class="card">
+<h4>Margem estática & por que o CG está em −2,65 m</h4>
+<p>A <b>margem estática</b> = distância (em calibres) entre o CG e o ponto neutro (centro de pressão). Mais margem = mais estável, mas menos manobrável; menos margem = mais manobrável, mas o trim exige mais α. Nosso <b>xcg₀ = −2,65 m → margem ~1,1 cal</b>.</p>
+<p>Por que não mais traseiro? Com CG em −2,75 (margem 0,79 cal), o <b>trim a leme cheio do CG de lançamento exigia ~−21° de α — fora da tabela ±20°</b>, e a curva do Gmax não achava equilíbrio. Trazer o CG à frente (mais margem) faz o trim caber em ±20° em todas as fases. <span class="muted">O CG é só o "chute" de margem; o que vale são os critérios (bingo, 5g, banda, Gmax).</span></p>
+</div>
+
+<h3 id="gmax">5.1 Manobra máxima (Gmax) — <code>PlotGMax.m</code></h3>
+<p>Para cada fase de CG e cada Mach, acha o <b>α de trim a leme máximo (20°)</b> resolvendo <code>Cm = 0</code>, e converte o <code>CN</code> nesse α em <b>g</b>:</p>
+<div class="eq">Cm(δ=20°,α) = Cm₀ − (XCG − CRM)·CN = 0  →  α_trim  →  Gmax = q·S·CN(α_trim)/(m·g)</div>
+<p><b>Atenção (gotcha):</b> a fórmula do prof usa <code>(XCG − CRM)</code> <i>sem</i> dividir por <code>DRef</code> — ela só é exata quando <b>CG = CRM</b>. Por isso rodamos o DATCOM no próprio <code>xcg₀</code> (CRM = xcg₀ = −2,65), eliminando a transferência de momento. Resultado: <b>todas as 5 curvas acham trim dentro de ±20°</b>, Gmax 2→7,4 g, terminal ~5,6 g.</p>
+
+<!-- ============ 6 ============ -->
+<h2 class="sec" id="aero">6. Aerodinâmica — DATCOM & <code>M_aed.mat</code></h2>
+<p>O banco aerodinâmico é gerado pelo <b>Missile DATCOM</b> (semi-empírico) e guardado em <code>M_aed.mat</code> como tabelas 3D indexadas por <b>(deflexão δ, Mach, α)</b>.</p>
+<h4>Pipeline (pasta <code>RunDatcom2/</code>)</h4>
+<pre><span class="c">% 1) geometria do MM40 no for005_mansup.dat (XCG = 2.65, asas + aletas)</span>
+RunDatcom2.exe -i:for005_mansup.dat -o:Coef_mansup.dat -delta0:-20 -deltad:2 -deltan:21
+<span class="c">% 2) converte o .dat em tabelas .mat</span>
+Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach/alpha + M_CN, M_CM, ...)</span></pre>
+<p>Conteúdo de <code>M_aed.mat</code>: <code>M_CN</code> (força normal), <code>M_CM</code> (momento de arfagem), <code>M_CA</code>/<code>M_CD</code> (axial/arrasto), <code>M_CL</code>, <code>M_XCP</code> (centro de pressão), e as derivadas <code>M_CNA</code>, <code>M_CMA</code>, <code>M_CMQ</code>. O campo <code>dados.XCG</code> é o centro de referência de momentos do DATCOM.</p>
+<p><b><code>calcula_coef(δ,Mach,α)</code></b> interpola essas tabelas (<code>interpn</code>) e calcula as <b>derivadas de estabilidade</b> por diferenças finitas (<code>dCN_da</code>, <code>dCM_da</code>, <code>dCN_dd</code>, <code>dCM_dd</code>, <code>dCN_dM</code>…). É a ponte entre o DATCOM e as funções de transferência.</p>
+<p class="muted">No plot 02 vê-se: <b>Cₙ × α linear</b> (sustentação), <b>Cₘ × α com inclinação negativa</b> (estaticamente estável), <b>Cᴅ × α parabólico</b> (drag bucket no α=0).</p>
+
+<!-- ============ 7 ============ -->
+<h2 class="sec" id="din">7. Dinâmica 6DOF & funções de transferência</h2>
+<p>O modelo 6DOF (bloco <i>Custom Variable Mass 6DOF (Euler Angles)</i>) integra as 6 equações de corpo rígido com massa/inércia variáveis. Para o <b>projeto do autopiloto</b>, lineariza-se o movimento de <b>curto-período</b> (arfagem) em torno de α=0 com <b><code>FTransDin.m</code></b>, que devolve 4 funções de transferência (entrada = deflexão <code>dlt</code>):</p>
+<table>
+<tr><th>FT</th><th>Saída</th><th>Uso</th></tr>
+<tr><td><code>Din_q</code></td><td>q (velocidade de arfagem)</td><td>malha interna de girômetro</td></tr>
+<tr><td><code>Din_theta</code></td><td>θ (atitude)</td><td>= Din_q · 1/s</td></tr>
+<tr><td><code>Din_alfa</code></td><td>α (ângulo de ataque)</td><td>—</td></tr>
+<tr><td><code>Din_acel</code></td><td>Az (aceleração lateral)</td><td>malha de aceleração</td></tr>
+</table>
+<p>As FTs são 2ª ordem (curto-período). As derivadas usadas (notação da apostila):</p>
+<div class="eq">Cza = −dCN_dα · &nbsp; Cma = dCM_dα + dxcg·Cza · &nbsp; Cmq = CMQ · &nbsp; Czd = −dCN_dδ · &nbsp; Cmd = dCM_dδ + dxcg·Czd</div>
+<p>onde <b><code>dxcg = (xcg − CRM)/DRef</code></b> é a transferência de momento do CRM do DATCOM para o <b>CG real instantâneo</b> (em calibres). É assim que o mesmo <code>M_aed</code> serve para todas as fases de queima sem rerodar o DATCOM.</p>
+<div class="card">
+<h4>Característica do airframe "pelado"</h4>
+<p>O curto-período é <b>muito pouco amortecido (ξ ≈ 0,08)</b> — em malha aberta (módulo 02), uma deflexão excita uma oscilação que demora a decair, e cuja <b>frequência sobe com a velocidade</b> (ωn ∝ √q). <span class="muted">É exatamente isso que justifica a malha interna de girômetro do autopiloto (leva ξ para ~1).</span> A aceleração tem ainda um <b>zero de fase não-mínima</b> (~+13,7 rad/s) → o degrau de Az começa com um pequeno "afundamento" antes de subir, e isso limita a banda. A atitude tem um <b>zero de incidência lento</b> (míssil pesado) → cauda lenta na resposta de θ.</p>
+</div>
+
+<h3 id="sinal">7.1 Convenção de sinal — o ponto que mais confunde</h3>
+<div class="card warn">
+<p>O nosso <code>Din_q</code> tem <b>ganho NEGATIVO</b> (oposto ao template anti-UAV original do prof). Sem corrigir, o autopiloto realimenta com o sinal errado e instabiliza/comando invertido. Duas correções, que precisam coexistir:</p>
+<ul>
+<li>No <b>projeto</b> (<code>ProjRLocus.m</code>): o atuador entra como <code>num_at = −AT.num·Kat</code> (negado).</li>
+<li>Nos <b>modelos Simulink</b> (Autopiloto.slx / GuiamentoControle.slx): <b>Gain = −1</b> na saída de deflexão (DLT_Z/DLT_Y) de cada autopiloto.</li>
+</ul>
+<p class="muted">Verificamos as 4 combinações de sinal; só <code>num_at = −AT.num</code> + ganhos positivos é estável.</p>
+</div>
+
+<!-- ============ 8 ============ -->
+<h2 class="sec" id="ap">8. Autopiloto — projeto por root locus</h2>
+<p>Dois autopilotos (arfagem e guinada, idênticos por simetria), cada um com <b>arquitetura de dois laços</b>. O gerador oficial das tabelas de ganho é <b><code>ProjRLocus.m</code></b> (varre 6 fases de CG × 2 altitudes × 3 Machs e salva <code>autopiloto.mat</code>).</p>
+
+<h3>Os três laços (ver plot 05 — root locus)</h3>
+<table>
+<tr><th>Laço</th><th>Estrutura</th><th>Ganho</th><th>Critério de escolha</th></tr>
+<tr><td><b>Interno (girômetro)</b></td><td>realimenta <code>q</code>; atuador <code>−AT·Kat</code></td><td><code>Kat</code> = <code>T_at_k_int</code></td><td>ganho que <b>maximiza o amortecimento</b> do curto-período (ξ: 0,08 → ~1)</td></tr>
+<tr><td><b>Externo de atitude</b></td><td>proporcional (Amp=1) + integrador <code>q→θ</code> (1/s)</td><td><code>KAt</code> = <code>T_at_k_ext</code></td><td>ganho onde o modo de manobra atinge ζ ≈ 0,5</td></tr>
+<tr><td><b>Externo de aceleração</b></td><td>integrador externo <code>−1/s</code></td><td><code>KAz</code> = <code>T_acel_k_ext</code></td><td><b>maior ganho com ζ_dom ≥ 0,6</b>, limitado por 0,5·K_instab (zero de fase não-mínima)</td></tr>
+</table>
+
+<div class="card">
+<h4>Escalonamento de ganhos (gain scheduling)</h4>
+<p>Os ganhos mudam muito com o <b>Mach</b> (pressão dinâmica) e o <b>CG</b> (margem), pouco com a altitude. O <code>autopiloto.mat</code> guarda tabelas 3D <code>T_xxx(i_cg, i_alt, i_mach)</code> com <code>vet_Mach=[0.6 0.75 0.9]</code>, <code>vet_altitude=[10 100]</code>, <code>vet_x_CG</code> (6 pontos). O Simulink interpola (<code>interpn</code>) o ganho pela condição instantânea. <span class="muted">Visualize com <code>PlotGanhosMach</code> (ganho × Mach, por CG) — o <code>PlotAP</code> do prof plota ganho × altitude (quase reto, pois só há 2 altitudes).</span></p>
+</div>
+
+<h3>Desempenho (plots 04 e 08)</h3>
+<ul>
+<li><b>Degrau de atitude</b>: DC=1,00, ~8% overshoot, banda 2,6–3,6 Hz (com a cauda lenta do zero de incidência).</li>
+<li><b>Degrau de aceleração</b>: DC=1,00, afundamento inicial (zero não-mínimo), ~8–10% overshoot, banda 0,7–1,3 Hz.</li>
+<li><b>Degrau de 5 g</b> (plot 08): sobe a 5,48 g e assenta em 5 g, <b>mais rápido que o requisito de 0,5 Hz</b> → atende manobra + banda de uma vez.</li>
+</ul>
+
+<!-- ============ 9 ============ -->
+<h2 class="sec" id="alt">9. Controle de altitude — sea-skimming</h2>
+<p>O voo rasante é feito por uma malha proporcional <b>altitude → comando de atitude</b>: o erro de altitude (alt − ref) vira um <code>θ_ref</code> que o autopiloto de atitude segue. Projetada por root locus em <code>ProjContAlt.m</code> (cascata: controle de altitude em volta do AP de atitude em volta da malha de girômetro).</p>
+<ul>
+<li>Ganho <b><code>D.KAlt = 1°/m</code></b> (tunado pelo prof: começar em 1 e verificar o melhor valor). Abaixo disso o míssil mergulha; o valor segura a altitude rasante (~26 m no voo).</li>
+<li><code>D.HRef = 10 m</code> (referência rasante), saturação de subida (<code>AngSubMax</code>, <code>DAltSat</code>).</li>
+</ul>
+
+<!-- ============ 10 ============ -->
+<h2 class="sec" id="gui">10. Guiamento & autodiretor</h2>
+<p>No <b>terminal</b>, o míssil usa <b>navegação proporcional</b>: a taxa de aceleração comandada é proporcional à taxa de giro da linha de visada (LOS) ao alvo. O <b>autodiretor (AD)</b> "ideal" fornece os ângulos/taxas de visada; o <b>Guiamento Terminal</b> os converte em comandos de aceleração lateral (Ay, Az) para os autopilotos.</p>
+<ul>
+<li><b>Cenário</b> (<code>CondLanc6DOF</code> do módulo 04): lançamento rasante, alvo a ~60 km / 15 km lateral.</li>
+<li><b>Espoleta</b>: <code>D.REspoleta = 20 m</code> (raio de detonação por proximidade; valor do prof). O bloco <b>Bingo</b> dispara quando a distância míssil-alvo &lt; 20 m.</li>
+<li><b>Condições de parada</b>: Bingo, Impacto com solo, Fuga do alvo, V &lt; Vmin.</li>
+</ul>
+<p class="muted">No nosso voo: o alvo está quase à frente, então a manobra terminal é pequena (Az ≈ 0 no fim) e o voo é quase reto — por isso o laço de aceleração mal é exercitado e o bingo sai liso. As oscilações em 0–40 s são a transição de boost/baixo-Mach (ganhos só valem Mach 0,6–0,9, extrapolam abaixo).</p>
+
+<!-- ============ 11 ============ -->
+<h2 class="sec" id="files">11. O que cada arquivo faz</h2>
+<h4>Dados (fonte única + forwarders)</h4>
+<table>
+<tr><th>Arquivo</th><th>Função</th></tr>
+<tr><td><code>00_Comum/DadosMissilComum.m</code></td><td>Devolve <code>D</code> com parâmetros (DRef, Mf, M0) e propulsão (<code>VProp</code>, MpB/MpS/EmpB/EmpS/Tq), controle/guiamento (KAlt, REspoleta, AcelLatMax, qsi, wn).</td></tr>
+<tr><td><code>00_Comum/DadosCGInerciaComum.m</code></td><td>Recebe <code>D</code>, adiciona layout das seções, <code>xcg₀</code>, CG/inércia nas 5 fases (<code>CGMissil</code>, <code>IMissil</code>), e <code>CRM = −XCG</code> lido do <code>M_aed</code>.</td></tr>
+<tr><td><code>{02,03,04}/DadosMissil.m</code>, <code>DadosCGInercia.m</code></td><td>Forwarders → chamam as versões <code>...Comum</code>.</td></tr>
+<tr><td><code>DadosControle.m</code></td><td>Adiciona limites do autopiloto (<code>Dlt_max=20°</code>, anti-windup, sobre-ganhos).</td></tr>
+<tr><td><code>CondLanc6DOF.m</code></td><td>Devolve <code>C</code> (cenário): posições/velocidades iniciais, alvo, Tfim, deflexões de teste.</td></tr>
+</table>
+<h4>Aerodinâmica & dinâmica</h4>
+<table>
+<tr><th>Arquivo</th><th>Função</th></tr>
+<tr><td><code>RunDatcom2/RunDatcom2.exe</code></td><td>Roda o Missile DATCOM (Windows) → <code>Coef_mansup.dat</code>.</td></tr>
+<tr><td><code>Coef2Mat.m</code></td><td>Converte o <code>.dat</code> do DATCOM em <code>M_aed.mat</code> (tabelas 3D).</td></tr>
+<tr><td><code>calcula_coef.m</code></td><td>Interpola <code>M_aed</code> e calcula derivadas de estabilidade (diferenças finitas).</td></tr>
+<tr><td><code>FTransDin.m</code></td><td>Monta as FTs de curto-período (<code>Din_q</code>, <code>Din_acel</code>, <code>Din_alfa</code>, <code>Din_theta</code>) a partir das derivadas + massa/inércia/dxcg.</td></tr>
+<tr><td><code>dimensionamento_exocet.m</code></td><td>Script traçável do dimensionamento (booster estrela + sustainer end-burner).</td></tr>
+</table>
+<h4>Projeto do autopiloto / controle</h4>
+<table>
+<tr><th>Arquivo</th><th>Função</th></tr>
+<tr><td><code>ProjRLocus.m</code></td><td><b>Gerador oficial</b> do <code>autopiloto.mat</code>: varre (CG×alt×Mach), monta os 3 laços por <code>connect</code>, escolhe os ganhos por root locus, salva as tabelas.</td></tr>
+<tr><td><code>ProjContAlt.m</code></td><td>Projeta o ganho do controle de altitude por root locus (cascata sobre o AP de atitude).</td></tr>
+<tr><td><code>PlotAP.m</code></td><td>(prof) curvas de ganho × <b>altitude</b>, uma figura por Mach.</td></tr>
+<tr><td><code>PlotGanhosMach.m</code></td><td>(nosso) curvas de ganho × <b>Mach</b>, por CG — visão informativa do scheduling.</td></tr>
+<tr><td><code>PlotRootLocus.m</code></td><td>(nosso) os 3 root loci com o ganho escolhido marcado (montagem exata = ProjRLocus). → plot 05.</td></tr>
+<tr><td><code>Step04.m</code></td><td>(nosso) respostas ao degrau de atitude e aceleração (montagem exata). → plot 04.</td></tr>
+<tr><td><code>RespostaDegrau5g.m</code></td><td>(nosso) degrau de 5 g (Simulação × Requisito de banda). → plot 08.</td></tr>
+<tr><td><code>GeraPlots.m</code> / <code>DiagAz.m</code></td><td>(nosso) gera plots 01–05 / diagnóstico de amortecimento do ganho de Az.</td></tr>
+</table>
+<h4>Drivers, pós-processamento & plots</h4>
+<table>
+<tr><th>Arquivo</th><th>Função</th></tr>
+<tr><td><code>VooUnico6DOF.m</code></td><td>Driver: monta D/C, carrega dados, <code>sim(modelo)</code>, <code>SalvaDinamica6DOF</code>, checa flags (Bingo/…), <code>plot6DOF(S)</code>.</td></tr>
+<tr><td><code>SalvaDinamica6DOF.m</code></td><td>Empacota as saídas do Simulink na struct <code>S</code> (Xe, Euler, Vb, Ab, Alfa, Beta, DeltaZ/Y, Mach, XCG, m, FProp, Theta_Ref, Acel_z_ref, Xa, …).</td></tr>
+<tr><td><code>plot6DOF.m</code></td><td>(prof) plotagem interativa por menu: Trajetória (míssil×alvo), Aceleração, Velocidade, Propulsão, α×δ, p/q/r, Euler, Forças/Momentos; e "Autopiloto" (comandado×executado).</td></tr>
+<tr><td><code>PlotGMax.m</code></td><td>Manobra máxima (g) × Mach por fase de CG. → plot 01.</td></tr>
+<tr><td><code>RunGuiamentoPlots.m</code></td><td>(nosso) wrapper não-interativo: sim + miss numérico + exporta plots 06/07.</td></tr>
+</table>
+
+<!-- ============ 12 ============ -->
+<h2 class="sec" id="slx">12. Modelos Simulink</h2>
+<table>
+<tr><th>Modelo</th><th>Pasta</th><th>O que é</th></tr>
+<tr><td><code>Dinamica6DOF.slx</code></td><td>02</td><td>6DOF <b>malha aberta</b> (resposta livre a deflexão).</td></tr>
+<tr><td><code>Autopiloto.slx</code></td><td>03</td><td>6DOF + autopiloto (teste de degrau/comando).</td></tr>
+<tr><td><code>GuiamentoControle.slx</code></td><td>04</td><td>Voo <b>homing completo</b> (malha fechada).</td></tr>
+</table>
+<h3>Subsistemas do <code>GuiamentoControle.slx</code></h3>
+<ul>
+<li><b>Dinâmica 6DOF</b> → <i>Custom Variable Mass 6DOF (Euler Angles)</i>, <i>Aerodinâmica 2D</i> (usa <code>M_aed</code> via <code>D.Cmap</code>), <i>Propulsão</i>, <i>Gravidade</i>, <i>Acelerômetro</i>.</li>
+<li><b>Autopiloto</b> → <i>AutoPiloto Pitch</i> e <i>AutoPiloto Yaw</i>; cada um com "Rastreador de atitude" e "Rastreador de aceleração" + chave de seleção. O modo é escolhido por um flag (<b>0 = atitude, &gt;0 = aceleração</b>). Ganhos via lookup escalonado. <span class="warnc">Gain = −1 na saída de deflexão (correção de sinal).</span></li>
+<li><b>Guiamento e Controle</b> → <i>Controle de Atitude</i>, <i>Guiamento Terminal</i> (navegação proporcional), <i>Controle de Altitude</i> (sea-skim, KAlt).</li>
+<li><b>AD</b> → <i>AD Ideal</i> (autodiretor/seeker idealizado).</li>
+<li><b>Alvo</b> → cinemática do navio.</li>
+<li><b>Verifica Fim</b> → <i>Bingo</i>, <i>Impacto com solo</i>, <i>Parada: Fuga do alvo</i>, <i>Parada: V &lt; Vmin</i>.</li>
+</ul>
+<div class="card warn"><b>Gotcha de edição:</b> depois de editar um <code>.slx</code> via <code>set_param</code>/<code>save_system</code> em batch, o Simulink aberto mostra a versão em <b>cache</b> — feche tudo (<code>bdclose all</code>) e reabra. Nunca editar o zip do <code>.slx</code> à mão.</div>
+
+<!-- ============ 13 ============ -->
+<h2 class="sec" id="dec">13. Decisões de projeto & gotchas (resumo defensável)</h2>
+<table>
+<tr><th>Decisão / problema</th><th>Causa</th><th>Solução</th></tr>
+<tr><td>Míssil desacelerava e mergulhava</td><td>Sustainer dimensionado pelo Cd de α=0 (subdimensionado)</td><td>EmpS = arrasto de cruzeiro <b>com trim</b> (Cd~0,58) → segura Mach 0,90</td></tr>
+<tr><td>Curva de Gmax não fechava (lançamento)</td><td>CG traseiro (−2,75) → trim ~−21°, fora de ±20°</td><td>CG à frente (−2,65, margem 1,1 cal) → trim −18°, todas as curvas fecham</td></tr>
+<tr><td>Comando × executado "bizarro"</td><td><code>Din_q</code> negativo (oposto ao template)</td><td><code>num_at=−AT.num</code> + <b>Gain −1</b> na deflexão</td></tr>
+<tr><td>Degrau de Az anelava (87% overshoot)</td><td>Seleção do ganho de Az caía num fallback alto (ξ~0,1)</td><td>maior ganho com ξ_dom ≥ 0,6 → 10% overshoot</td></tr>
+<tr><td>Míssil mergulhava no rasante</td><td>KAlt baixo (0,1°/m)</td><td>KAlt = 1°/m</td></tr>
+<tr><td>PlotGMax usa transferência sem /DRef</td><td>fórmula do prof exata só se CG=CRM</td><td>rodar DATCOM no próprio xcg₀ (CRM = xcg₀)</td></tr>
+</table>
+
+<!-- ============ 14 ============ -->
+<h2 class="sec" id="qa">14. Q&A provável do professor</h2>
+<p class="muted">Perguntas típicas de quem quer verificar domínio do código depois do bingo. Clique para expandir.</p>
+
+<details class="qa"><summary>Como o empuxo do sustainer foi dimensionado? Por que não pelo Cd a α=0?</summary>
+<div class="ans"><span class="q">R:</span> O míssil cruza em <b>α de trim</b> (precisa de sustentação para o voo nivelado), então o Cd real (~0,58) é bem maior que o Cd a α=0 (~0,42). Dimensionar pelo α=0 dá empuxo &lt; arrasto → o míssil desacelera, o α de trim sobe, o arrasto sobe ainda mais (efeito de fuga) e ele mergulha. Igualamos <code>EmpS = q·S·Cd_trim</code> para que <b>empuxo = arrasto a Mach 0,90</b> (equilíbrio de cruzeiro). MpS sai de <code>EmpS·TqS/(Isp·g)</code>.</div></details>
+
+<details class="qa"><summary>Por que o CG está em −2,65 m e não mais atrás? Qual a margem estática?</summary>
+<div class="ans"><span class="q">R:</span> Margem ~1,1 calibre. Mais atrás (−2,75; margem 0,79 cal) o míssil é mais manobrável, mas o <b>trim a leme cheio do CG de lançamento exige ~21° de α — fora da tabela aerodinâmica de ±20°</b> — e a curva de manobra máxima não acha equilíbrio. Trazendo o CG à frente (mais margem) o trim cai para ~18°, dentro de ±20°, e <b>todas as fases de CG fecham o Gmax</b>. O CG é só o chute inicial de margem; ajustamos pelos critérios.</div></details>
+
+<details class="qa"><summary>De onde vêm os coeficientes aerodinâmicos? Como entram no controle?</summary>
+<div class="ans"><span class="q">R:</span> Do <b>Missile DATCOM</b> (semi-empírico), via <code>RunDatcom2.exe</code> → <code>Coef2Mat</code> → <code>M_aed.mat</code> (tabelas 3D em δ, Mach, α). O <code>calcula_coef</code> interpola e tira as <b>derivadas de estabilidade</b> por diferenças finitas; o <code>FTransDin</code> monta as funções de transferência de curto-período. No 6DOF, o subsistema "Aerodinâmica 2D" interpola o <code>M_aed</code> a cada passo.</div></details>
+
+<details class="qa"><summary>Explique a arquitetura do autopiloto. Por que duas malhas?</summary>
+<div class="ans"><span class="q">R:</span> <b>Malha interna de girômetro</b> realimenta a taxa de arfagem <code>q</code> — sua única função é <b>amortecer o curto-período</b> (o airframe pelado tem ξ≈0,08; a malha leva para ~1). <b>Malha externa</b> fecha a variável de interesse: <b>atitude</b> (θ, proporcional + integrador q→θ) ou <b>aceleração</b> (Az, com integrador externo). Os ganhos são <b>escalonados</b> por (CG, altitude, Mach) porque a dinâmica muda muito com a pressão dinâmica e a margem.</div></details>
+
+<details class="qa"><summary>O que é o zero de fase não-mínima na aceleração? Qual o impacto?</summary>
+<div class="ans"><span class="q">R:</span> A FT <code>dlt→Az</code> tem um zero no semiplano direito (~+13,7 rad/s). Fisicamente: ao defletir o leme, a força na cauda primeiro empurra o míssil para o lado "errado" antes do momento girar o corpo e gerar a aceleração certa → o degrau de Az <b>começa afundando</b> (vê-se no plot 08). Ele <b>limita a banda passante</b> da malha de aceleração (não dá para ser arbitrariamente rápido) e por isso o ganho de Az é escolhido com margem (ξ≥0,6, limitado por 0,5·ganho de instabilidade).</div></details>
+
+<details class="qa"><summary>Por que precisou de Gain = −1 no Simulink?</summary>
+<div class="ans"><span class="q">R:</span> Nosso <code>Din_q</code> tem ganho negativo (convenção de sinal oposta ao template anti-UAV de onde partimos). Sem corrigir, a realimentação fica positiva e o laço instabiliza / o comando sai invertido. Corrigimos em dois lugares coerentes: <code>num_at=−AT.num</code> no projeto e <b>Gain −1 na saída de deflexão</b> de cada autopiloto no modelo.</div></details>
+
+<details class="qa"><summary>Como o míssil voa rasante sem bater na água?</summary>
+<div class="ans"><span class="q">R:</span> Malha de <b>controle de altitude</b> proporcional (ganho KAlt = 1°/m): o erro de altitude vira um comando de atitude <code>θ_ref</code> que o autopiloto de atitude segue (cascata projetada em <code>ProjContAlt</code>). Com KAlt baixo demais o míssil mergulha; com o valor tunado ele estabiliza em ~26 m. Referência rasante HRef = 10 m, com saturação de subida.</div></details>
+
+<details class="qa"><summary>O que é "bingo" no código e como é detectado?</summary>
+<div class="ans"><span class="q">R:</span> Bingo = acerto. O subsistema "Verifica Fim" tem o bloco <b>Bingo</b> que dispara quando a distância míssil-alvo fica menor que a <b>espoleta de proximidade</b> <code>REspoleta = 20 m</code>. No nosso voo a distância mínima (CPA) foi <b>17,9 m</b> &lt; 20 m → detonação na letalidade da ogiva.</div></details>
+
+<details class="qa"><summary>Qual a lei de guiamento? Como o comando chega no autopiloto?</summary>
+<div class="ans"><span class="q">R:</span> <b>Navegação proporcional</b>: o autodiretor (AD Ideal) mede a taxa de giro da linha de visada ao alvo; o Guiamento Terminal a transforma em <b>comando de aceleração lateral</b> (Ay/Az), que vira a referência da malha de aceleração do autopiloto. Antes do terminal, o controle de altitude comanda atitude (sea-skim).</div></details>
+
+<details class="qa"><summary>Por que a oscilação aparece só no começo do voo (0–40 s)?</summary>
+<div class="ans"><span class="q">R:</span> É a transição de <b>boost / baixo Mach</b>. As tabelas de ganho só foram projetadas para Mach 0,6–0,9; abaixo disso (logo após o lançamento) elas extrapolam e o amortecimento fica pior. Conforme o míssil acelera e entra na faixa de projeto, tudo amortece e o voo fica liso.</div></details>
+
+<details class="qa"><summary>Como vocês garantem que o autopiloto "segue o comando"?</summary>
+<div class="ans"><span class="q">R:</span> Pelo <b>degrau em malha fechada</b> (plot 04): atitude e aceleração têm <b>ganho DC = 1,00</b> (a saída assenta exatamente no comando) e são estáveis e amortecidas. E no plot do prof "Autopiloto" (comandado × executado) as curvas coincidem. O degrau de 5 g (plot 08) mostra a aceleração atingindo 5 g mais rápido que o requisito de banda.</div></details>
+
+<details class="qa"><summary>Por que o mesmo M_aed serve para todas as fases de queima?</summary>
+<div class="ans"><span class="q">R:</span> Porque o momento é <b>transferido do CRM do DATCOM para o CG real</b> instantâneo via <code>dxcg = (xcg − CRM)/DRef</code> (entra em <code>Cma</code> e <code>Cmd</code> no <code>FTransDin</code>). O CG migra de −2,65 a −1,70 m com a queima; a transferência cobre essa migração sem rerodar o DATCOM.</div></details>
+
+<details class="qa"><summary>Diferença entre os módulos 02, 03 e 04?</summary>
+<div class="ans"><span class="q">R:</span> <b>02</b> = dinâmica em malha aberta (resposta livre do airframe a uma deflexão — mostra que o curto-período é pouco amortecido, justificando o controle). <b>03</b> = projeto dos autopilotos (root locus) e teste do 6DOF controlado com comandos de degrau. <b>04</b> = voo homing completo (guiamento + altitude + autopiloto em malha fechada) — é onde o míssil biga.</div></details>
+
+<!-- ============ 15 ============ -->
+<h2 class="sec" id="run">15. Como rodar (passo a passo)</h2>
+<table>
+<tr><th>Objetivo</th><th>Comando (MATLAB)</th><th>Saída</th></tr>
+<tr><td>Banco aerodinâmico</td><td><code>RunDatcom2.exe …</code> → <code>Coef2Mat('Coef_mansup.dat')</code></td><td><code>M_aed.mat</code></td></tr>
+<tr><td>Manobra máxima (Gmax)</td><td><code>cd 02-Dinamica6DOF; PlotGMax</code></td><td>plot 01</td></tr>
+<tr><td>Resposta livre do airframe</td><td><code>cd 02-Dinamica6DOF; VooUnico6DOF</code> → menu Dinâmica → α×δ</td><td>oscilação do curto-período</td></tr>
+<tr><td>Projetar autopiloto</td><td><code>cd 03-Autopiloto; ProjRLocus</code></td><td><code>autopiloto.mat</code></td></tr>
+<tr><td>Ganhos / degrau / root locus / 5 g</td><td><code>PlotGanhosMach</code> · <code>Step04</code> · <code>PlotRootLocus</code> · <code>RespostaDegrau5g</code></td><td>plots 03/04/05/08</td></tr>
+<tr><td><b>Voo homing (ver o bingo)</b></td><td><code>cd '04-Guiamento e Controle'; VooUnico6DOF</code> → menu Dinâmica → Trajetória</td><td>imprime <b>Bingo</b>; trajetória míssil×alvo</td></tr>
+<tr><td>Bingo numérico + plots</td><td><code>RunGuiamentoPlots</code></td><td>miss em metros + plots 06/07</td></tr>
+</table>
+
+<hr>
+<p class="muted">Documento gerado para preparação do questionário oral · PRJ-75 · míssil antinavio MANSUP (Exocet MM40). Fonte de dados: <code>00_Comum/</code>; resultados verificados nos commits <code>628b7af</code> / <code>b1d650b</code>.</p>
+
+</main>
+</div>
+</body>
+</html>
