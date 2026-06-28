@@ -35,7 +35,7 @@ for iCG = 1:NCG
         % Procura ponto onde CM troca de sinal
         Cm0(:) = Aer.M_CM(iDeltaX,iMach,:);
         CN(:) =  Aer.M_CN(iDeltaX,iMach,:);
-        Cm(:) = Cm0(:) - (XCG - CRM)*CN(:);
+        Cm(:) = Cm0(:) - (XCG - CRM)/D.DRef*CN(:);
         sinal = 1;
         k = 1;
         while sinal > 0 && k < NAlpha
