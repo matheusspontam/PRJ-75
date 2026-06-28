@@ -10,19 +10,19 @@ cte_grav = 9.8;
 %% PARAMETROS PRINCIPAIS
 D.DRef = 0.35;                 % (m)  diametro de referencia
 D.SRef = pi*D.DRef^2/4;        % (m2) area de referencia
-D.Mf   = 455.7;                % (kg) massa vazia (= secoes - propelente)
+D.Mf   = 475;                  % (kg) massa vazia (= secoes - propelente)
 
 %% PROPULSAO (dimensionamento_exocet.m)
 % Booster - grao estrela (acelera ate ~Mach 0.93 em ~4 s)
 D.TqB  = 4.0;                  % (s)
-D.MpB  = 125.3;               % (kg)
-D.EmpB = 6.742e4;             % (N)  ~67.4 kN
+D.MpB  = 125;                 % (kg)
+D.EmpB = 6.738e4;             % (N)  ~67.4 kN
 
-% Sustainer - grao end-burner. Empuxo dimensionado para o ARRASTO DE
-% CRUZEIRO COM SUSTENTACAO (trim, Cd~0.60), +margem, p/ NAO desacelerar.
+% Sustainer - grao end-burner. Empuxo = ARRASTO DE CRUZEIRO COM SUSTENTACAO
+% (trim, Cd~0.58) p/ cruzar a Mach 0.90 (equilibrio empuxo=arrasto).
 D.TqS  = 228.6;               % (s)
-D.MpS  = 336;                 % (kg)
-D.EmpS = 3.316e3;             % (N)  ~3.32 kN (= arrasto de cruzeiro c/ trim + margem)
+D.MpS  = 330;                 % (kg)
+D.EmpS = 3.25e3;              % (N)  ~3.25 kN (= arrasto de cruzeiro c/ trim @ Mach 0.90)
 
 % Vetor de empuxo e massa de propelente:  [t  Empuxo  Mprop]
 D.VProp = ...

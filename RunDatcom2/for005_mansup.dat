@@ -2,7 +2,7 @@ DIM M
 DERIV RAD
 DAMP
 $REFQ     BLAYER=TURB,
-          XCG=2.75,
+          XCG=2.65,
           SREF=0.09621,
           LREF=0.35,
           SCALE=1.0,$

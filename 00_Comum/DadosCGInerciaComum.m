@@ -3,20 +3,21 @@ function [D] = DadosCGInerciaComum(D)
 % DadosCGInerciaComum.m -- FONTE UNICA de CG e inercia
 % Layout (nariz -> cauda): Cont | CDG | Sustainer | Booster | Tubeira
 % Convencao: x=0 no nariz, POSITIVO p/ frente (posicoes negativas).
-% Massas tunadas para xcg0 ~ -2.75 m (margem ~0.8 cal, na faixa -2.4/-2.8).
+% Massas tunadas para xcg0 ~ -2.65 m (margem ~1.1 cal): margem suficiente
+% p/ TODAS as curvas do PlotGMax trimarem dentro de +-20 deg (trim ~ -18 deg).
 %-----------------------------------------------------
 D.R = D.DRef/2;
 
 %% SECOES (comprimentos e massas)
-% Sustainer maior (336 kg) p/ segurar o cruzeiro -> rebalanceado com nariz
-% mais leve (171 kg) para manter o CG na faixa.
-L_Cont = 1.09;   m_Cont = 171;
+% Sustainer (314 kg) segura o cruzeiro; nariz (201 kg) traz o CG p/ frente
+% o bastante p/ a margem fechar o trim em +-20 deg.
+L_Cont = 1.09;   m_Cont = 201;
 L_CDG  = 0.90;   m_CDG  = 165;
-L_Sustainer  = 2.35;   Mf_Sustainer = 65;    m_prop0S = D.MpS;
+L_Sustainer  = 2.35;   Mf_Sustainer = 60;    m_prop0S = D.MpS;
 LpropS = L_Sustainer;  m_MOTS = Mf_Sustainer + m_prop0S;
-L_Booster  = 1.25;     Mf_Booster = 40;       m_prop0B = D.MpB;
+L_Booster  = 1.25;     Mf_Booster = 35;       m_prop0B = D.MpB;
 LpropB = L_Booster;    m_MOTB = Mf_Booster + m_prop0B;
-L_Tub  = 0.20;   M_Tub = 15;
+L_Tub  = 0.20;   M_Tub = 14;
 
 L_missil   = L_Cont + L_CDG + L_Sustainer + L_Booster + L_Tub;
 D.L        = L_missil;
