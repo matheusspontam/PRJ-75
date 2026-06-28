@@ -84,6 +84,16 @@
   <a href="#ap">8. Autopiloto</a>
   <a href="#alt">9. Controle de altitude</a>
   <a href="#gui">10. Guiamento & autodiretor</a>
+  <h2>Anatomia (deep dive)</h2>
+  <a href="#dp-prop">A. Propulsão — equações</a>
+  <a href="#dp-ft">B. FTransDin termo a termo</a>
+  <a href="#dp-aero">C. Aerodinâmica 2D (Simulink)</a>
+  <a href="#dp-propsub">D. Propulsão (Simulink)</a>
+  <a href="#dp-ap">E. Autopiloto (Simulink)</a>
+  <a href="#dp-seek">F. Autodiretor (AD Ideal)</a>
+  <a href="#dp-pn">G. Guiamento terminal (PN)</a>
+  <a href="#dp-alt">H. Controle de altitude</a>
+  <a href="#dp-end">I. Verifica Fim (bingo)</a>
   <h2>Referência</h2>
   <a href="#files">11. Cada arquivo</a>
   <a href="#slx">12. Modelos Simulink</a>
@@ -330,6 +340,131 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
   <figcaption><b>Plot 07 — Séries temporais do voo</b>: altitude × referência (sea-skim), atitude θ, Mach (segura 0,90), aceleração Az, deflexão do leme e ângulo de ataque. Transiente de boost em 0–40 s, depois cruzeiro liso.</figcaption>
 </figure>
 
+<!-- ============ DEEP DIVE ============ -->
+<h2 class="sec" id="dp-prop">A. Propulsão — as equações, linha a linha</h2>
+<p>Fonte: <code>dimensionamento_exocet.m</code> (metodologia da <code>DefMissil.mlx</code>). <b>Aviso importante:</b> esse script é o <b>registro da metodologia</b> e usa a estimativa preliminar <code>Cd(0,9)=0,42</code> → sustainer subdimensionado (~2,3 kN). Os <b>valores finais</b> (já corrigidos pelo arrasto de trim, Cd≈0,58) vivem em <code>00_Comum/</code>: <span class="tag">MpS=330 kg, EmpS=3,25 kN, m_Cont=201 kg, xcg₀=−2,65 m</span>. As equações abaixo são as mesmas; só o Cd do sustainer foi atualizado.</p>
+
+<h3>A.1 Booster — grão ESTRELA</h3>
+<p>O grão estrela tem alta razão área-de-queima/volume → empuxo alto e curto. A geometria da estrela é parametrizada por: diâmetro externo <code>φE=0,30</code>, interno <code>φI=0,06</code>, espaçamento entre pétalas <code>εp=0,01</code>, e a <b>teia (web) queimável</b>:</p>
+<div class="eq">R = TqB·Vq = 4·0,010 = 0,040 m &nbsp;(espessura de propelente que queima em TqB)</div>
+<div class="eq">Nº pétalas: Nₛ = ⌊2π(φE/2 − R)/(2R + εp)⌋ &nbsp;·&nbsp; altura pétala hₛ = (φE−φI)/2 − R</div>
+<div class="eq">base maior Bₛ = 2R · base menor bₛ = R·φI/(φE/2 − R) · área pétala Aₛ = (bₛ+Bₛ)/2·hₛ</div>
+<div class="eq"><b>Volume de propelente por metro:</b> Vp/L = πR(φE − R) + Nₛ·Aₛ</div>
+<p>A massa de propelente do booster vem do <b>impulso necessário</b> para acelerar M0 até a velocidade de cruzeiro, vencendo o arrasto médio do boost (teorema do impulso):</p>
+<div class="eq">MpB = (M0·VCruz + Drag_boost·TqB)/(Isp_B·g) &nbsp;→&nbsp; EmpB = MpB·Isp_B·g/TqB ≈ 67,4 kN</div>
+<p class="muted">com <code>Drag_boost = ½ρ(VCruz/2)²·S·Cd</code> (arrasto médio durante a aceleração). Comprimento do grão = MpB/(ρ·Vp/L).</p>
+
+<h3>A.2 Sustainer — grão END-BURNER</h3>
+<p>O end-burner queima como um cigarro (área de queima = seção do grão, constante) → empuxo baixo e longo, ideal para cruzeiro. A vazão mássica é <code>ṁ = ρ·S·Vq</code> e o empuxo <code>F = Isp·g·ṁ</code>. <b>Dimensiona-se igualando empuxo = arrasto de cruzeiro:</b></p>
+<div class="eq">F = Isp·g·ρ·S·Vq = Drag_cruz &nbsp;→&nbsp; S = Drag_cruz/(Isp·g·ρ·Vq)</div>
+<div class="eq">TqS = Alcance/VCruz = 70000/(0,9·340) ≈ 228,6 s · Lp = Vq·TqS · MpS = ρ·S·Lp</div>
+<div class="card warn"><b>O ponto que define o sucesso:</b> <code>Drag_cruz = ½ρV²·S·Cd</code>. Usar <code>Cd</code> de α=0 (0,42) subdimensiona; o míssil voa em α de trim (Cd≈0,58), empuxo &lt; arrasto, desacelera e mergulha. Com <code>Cd_trim</code> o empuxo iguala o arrasto real → <b>cruza a Mach 0,90</b> (equilíbrio estável).</div>
+
+<h2 class="sec" id="dp-ft">B. FTransDin — o curto-período termo a termo</h2>
+<p>Lineariza o movimento de arfagem (curto-período) em torno de α=0. Recebe Mach, altitude, massa <code>m</code>, inércia <code>Iy</code>, <code>dxcg</code> e devolve 4 FTs de 2ª ordem. Passo a passo do código:</p>
+<h4>1) Coeficientes e pressão dinâmica</h4>
+<pre>[~,a,~,rho] = atmosisa(alt); U = Mach*a; q = 0.5*rho*U^2;
+[CN,..,dCN_da,dCN_dd,..,dCM_da,dCM_dd,..,CMQ] = calcula_coef(0,Mach,0);</pre>
+<h4>2) Derivadas de estabilidade (notação da apostila)</h4>
+<table>
+<tr><th>Símbolo</th><th>Código</th><th>Significado</th></tr>
+<tr><td>C<sub>zα</sub></td><td><code>−dCN_da</code></td><td>força normal por α (sustentação)</td></tr>
+<tr><td>C<sub>mα</sub></td><td><code>dCM_da + dxcg·Cza</code></td><td>momento por α — <b>&lt;0 = estável</b>; <code>dxcg</code> transfere p/ o CG real</td></tr>
+<tr><td>C<sub>mq</sub></td><td><code>CMQ</code></td><td>amortecimento aerodinâmico em arfagem</td></tr>
+<tr><td>C<sub>zδ</sub></td><td><code>−dCN_dd</code></td><td>força normal por deflexão de leme</td></tr>
+<tr><td>C<sub>mδ</sub></td><td><code>dCM_dd + dxcg·Czd</code></td><td>momento de controle (poder do leme)</td></tr>
+<tr><td>C<sub>I</sub>, C<sub>u</sub>, C<sub>2u</sub></td><td><code>Iy/(Sqc)</code>, <code>mU/(Sq)</code>, <code>c/(2U)</code></td><td>fatores de adimensionalização (inércia, massa, tempo)</td></tr>
+</table>
+<h4>3) Denominador comum (polos do curto-período)</h4>
+<div class="eq">den = AA·s² + BB·s + CC</div>
+<div class="eq">AA = C<sub>I</sub>·C<sub>u</sub> · BB = −C<sub>2u</sub>·C<sub>mq</sub>·C<sub>u</sub> − C<sub>I</sub>·C<sub>zα</sub> · CC = C<sub>2u</sub>·C<sub>mq</sub>·C<sub>zα</sub> − C<sub>u</sub>·C<sub>mα</sub></div>
+<p>Os dois polos são o modo de curto-período. <b><code>CC &gt; 0 ⟺ Cmα &lt; 0 ⟺ estaticamente estável.</code></b> O termo <code>−C2u·Cmq·Cu</code> em BB é o amortecimento (pequeno → ξ≈0,08).</p>
+<h4>4) Numeradores (as 4 FTs)</h4>
+<ul>
+<li><code>Din_q</code> (dlt→q): num = <code>[Cu·Cmd ,  Cma·Czd − Cmd·Cza]</code></li>
+<li><code>Din_acel</code> (dlt→Az): num = <code>U·[CI·Czd , Cu·Cmd−C2u·Cmq·Czd−(...) , −(Cma·Czd−Cmd·Cza)]</code> — o termo <code>CI·Czd</code> em s² é o que cria o <b>zero de fase não-mínima</b> (força da cauda antes do momento).</li>
+<li><code>Din_theta</code> = <code>Din_q · 1/s</code> (den com um <code>·s</code> a mais).</li>
+<li><code>Din_alfa</code> (dlt→α).</li>
+</ul>
+<p class="muted">Tudo recebe <code>InputName='dlt'</code> e <code>OutputName='q'/'Az'/...</code> para o <code>connect</code> do ProjRLocus montar os laços por nome.</p>
+
+<h2 class="sec" id="dp-aero">C. Subsistema "Aerodinâmica 2D" (Simulink)</h2>
+<p>É onde o 6DOF transforma o estado instantâneo (α, β, Mach, q, r, δ) em <b>forças e momentos aerodinâmicos</b>. Anatomia (blocos reais):</p>
+<ul>
+<li><b>n-D Lookup Tables</b> (várias): interpolam o <code>M_aed</code> — <code>M_CN</code>, <code>M_CM</code>, <code>M_CA</code>, <code>M_CMQ</code>… em função de (δ, Mach, α). É o consumo do banco DATCOM.</li>
+<li><b>Constant <code>D.CRM</code></b> + <b>Sum</b>: aplicam a <b>transferência de momento</b> do centro de referência para o CG real (o mesmo <code>(xcg−CRM)</code> da teoria).</li>
+<li><b>Gain <code>d/(2V) = ½</code></b> + produto: monta o termo de amortecimento <code>(c/2V)·q·CMQ</code> (derivada dinâmica).</li>
+<li><b>Constant <code>D.SRef</code>, <code>D.DRef</code></b> + produtos: força = <code>q̄·S·C</code>, momento = <code>q̄·S·D·C</code>.</li>
+<li><b>Gain <code>−1</code> / <code>R2D</code></b>: convenções de sinal e graus↔rad.</li>
+<li><b>Constant <code>D.Cmap</code></b>: flag de mapa aerodinâmico (setado 0 no driver).</li>
+</ul>
+<p class="muted">Em resumo: lookup dos coeficientes → transfere momento p/ o CG → multiplica por <code>q̄·S</code> (e <code>·D</code> p/ momento) → forças/momentos no corpo, que entram no bloco 6DOF.</p>
+
+<h2 class="sec" id="dp-propsub">D. Subsistema "Propulsão" (Simulink)</h2>
+<p>Puramente <b>lookups no tempo</b> (interpolam as tabelas de <code>D</code> construídas no MATLAB):</p>
+<table>
+<tr><th>Bloco (lookup em t)</th><th>Fonte</th><th>Saída</th></tr>
+<tr><td><code>Empuxo</code></td><td><code>D.VProp(:,[1 2])</code></td><td>empuxo(t) — booster, gap, sustainer, fim</td></tr>
+<tr><td><code>Massa de Propelente</code></td><td><code>D.VProp(:,[1 3])</code> + <code>D.mf</code></td><td>massa(t) — decresce com a queima</td></tr>
+<tr><td><code>XCG</code> / YCG / ZCG</td><td><code>D.CGMissil</code></td><td>CG(t) — migra de −2,65 a −1,70 m</td></tr>
+<tr><td><code>Ixx</code> / <code>Iyy</code></td><td><code>D.IMissil</code></td><td>inércia(t)</td></tr>
+</table>
+<p class="muted">É assim que o 6DOF tem massa/inércia/CG <b>variáveis</b> sem reprojetar nada: tudo sai por interpolação das 5 fases de queima.</p>
+
+<h2 class="sec" id="dp-ap">E. Subsistema "Autopiloto" (AutoPiloto Pitch/Yaw)</h2>
+<p>Cada canal (Pitch/Yaw) tem dois <b>Rastreadores</b> (atitude e aceleração) e uma chave que escolhe o modo. Anatomia de cada rastreador (blocos reais):</p>
+<ul>
+<li><b>Lookup <code>Procura K_ext</code> / <code>K_int</code></b>: interpolam as tabelas <code>autopiloto.mat</code> (<code>T_*_k_ext/int</code>) pela condição instantânea (CG, alt, Mach) → <b>gain scheduling em tempo real</b>.</li>
+<li><b>Gain <code>D.Ke_Ap_*</code> / <code>D.Ki_Ap_*</code></b>: sobre-ganhos de ajuste fino (= 1 por padrão), multiplicam os ganhos da tabela.</li>
+<li><b>Integrator</b>: presente no rastreador de <b>aceleração</b> (laço externo com integrador, casa com o <code>Amp=−1/s</code> do projeto); a atitude é proporcional.</li>
+<li><b>Saturate <code>±D.Dlt_max</code></b> (±20°): limite físico de deflexão do leme — é o que define a "manobra máxima".</li>
+<li><b>Sum</b> com sinais (<code>+−</code>, <code>−−</code>): erro externo e realimentação interna de <code>q</code> (girômetro).</li>
+</ul>
+<div class="card"><b>Seleção de modo & sinal:</b> um flag <code>Constant</code> (acel/at) escolhe entre o rastreador de atitude (=0) e o de aceleração (&gt;0). A saída de deflexão leva um <b>Gain −1</b> (correção do <code>Din_q</code> negativo). No voo, o controle de altitude comanda atitude (cruzeiro) e o guiamento terminal comanda aceleração (homing).</div>
+
+<h2 class="sec" id="dp-seek">F. Subsistema "AD Ideal" (autodiretor / seeker)</h2>
+<p>Modela um buscador <b>ideal</b> (sem ruído/atraso): a partir das posições/velocidades relativas míssil-alvo, calcula os ângulos e taxas da <b>linha de visada (LOS)</b>. Blocos reais:</p>
+<ul>
+<li><b>Sum (Subtract)</b>: posição relativa = alvo − míssil (e velocidade relativa).</li>
+<li><b><code>atan2</code></b> (Trigonometry): ângulos de LOS — <code>ThetaAD</code> (elevação) e <code>PsiAD</code> (azimute).</li>
+<li><b>Divide / Product</b>: taxas de LOS (<code>OmegaY</code>, <code>OmegaZ</code>) ≈ componente transversal da velocidade relativa / alcance.</li>
+<li><b>Saturate <code>±D.ThetaADmax</code> (40°)</b> e <b><code>±D.OmegaADmax</code></b>: limites de gimbal e de taxa do seeker.</li>
+</ul>
+<p class="muted">O sensor liga em <code>C.TLaser = 10 s</code> (antes disso o míssil voa pré-programado por rumo/altitude). <code>D.RSatAD</code>, <code>D.TTrav</code> (travamento) completam o modelo.</p>
+
+<h2 class="sec" id="dp-pn">G. Subsistema "Guiamento Terminal" — navegação proporcional</h2>
+<p>Converte as taxas de LOS do AD em <b>comando de aceleração lateral</b>. Blocos reais: <code>Ganho Prop = ±D.KProp</code>, produtos, <code>cos</code> (projeções) e <code>Constant −cte_grav</code> (compensação de gravidade). A lei é navegação proporcional:</p>
+<div class="eq">a_cmd ≈ N·V·ω_LOS &nbsp; (N = D.KProp = 3,5) &nbsp;+&nbsp; compensação de g</div>
+<ul>
+<li><b><code>D.KProp = 3,5</code></b>: constante de navegação (N). Quanto maior, mais agressivo o fechamento da LOS.</li>
+<li><b><code>cos</code></b>: projeta os comandos nos eixos do corpo.</li>
+<li><b><code>−cte_grav</code></b>: adiciona a aceleração para contrariar a gravidade (voo nivelado/sea-skim).</li>
+<li>Saída → vira a referência (<code>Acel_y_ref</code>, <code>Acel_z_ref</code>) do rastreador de aceleração do autopiloto.</li>
+</ul>
+<p class="muted"><b>Por que biga liso:</b> com o alvo quase à frente, a taxa de LOS é pequena → comando de aceleração pequeno → voo quase reto, e o erro de visada → 0 no impacto (miss 17,9 m).</p>
+
+<h2 class="sec" id="dp-alt">H. Subsistema "Controle de Altitude"</h2>
+<p>Mantém o voo rasante traduzindo erro de altitude em comando de atitude. Blocos reais:</p>
+<div class="eq">θ_ref = sat<sub>±AngSubMax</sub>[ D.KAlt·(C.AltCruz − alt) ]</div>
+<ul>
+<li><b>Constant <code>C.AltCruz</code> (30 m)</b> − altitude: erro de altitude.</li>
+<li><b>Gain <code>D.KAlt</code> (1°/m)</b>: ganho proporcional altitude→atitude (tunado; abaixo disso mergulha).</li>
+<li><b>Saturate <code>±D.AngSubMax</code> (20°)</b>: limita o ângulo de subida/descida comandado.</li>
+<li><b>Constant <code>C.Rumo0</code></b>: rumo inicial pré-programado (antes do seeker travar).</li>
+</ul>
+<p>Projetado por root locus em <code>ProjContAlt.m</code> como uma <b>cascata</b>: controle de altitude (ganho <code>KAlt</code>) em volta do autopiloto de atitude (já fechado) em volta da malha de girômetro. O integrador <code>V/s</code> (θ→altitude, via velocidade) fecha a malha.</p>
+
+<h2 class="sec" id="dp-end">I. Subsistema "Verifica Fim" — bingo e paradas</h2>
+<p>Monitora o fim do voo. Quatro saídas booleanas (qualquer uma para a simulação):</p>
+<table>
+<tr><th>Bloco</th><th>Condição</th><th>Significado</th></tr>
+<tr><td><b>Bingo</b></td><td>distância míssil-alvo &lt; <code>D.REspoleta</code> (20 m)</td><td class="green">acerto (detonação por proximidade)</td></tr>
+<tr><td>Impacto com solo</td><td>altitude ≤ 0</td><td>caiu no mar</td></tr>
+<tr><td>Parada: Fuga do alvo</td><td>distância voltando a crescer (passou do alvo)</td><td>errou</td></tr>
+<tr><td>Parada: V &lt; Vmin</td><td>V &lt; <code>D.VMin</code> (170 m/s)</td><td>perdeu energia</td></tr>
+</table>
+<p class="muted">O <code>VooUnico6DOF</code> lê esses flags ao fim (<code>if Bingo(end)==1 disp('Bingo')</code>). O <code>RunGuiamentoPlots</code> calcula a distância mínima (CPA) numérica: <b>17,9 m &lt; 20 m → bingo</b>.</p>
+
 <!-- ============ 11 ============ -->
 <h2 class="sec" id="files">11. O que cada arquivo faz</h2>
 <h4>Dados (fonte única + forwarders)</h4>
@@ -445,6 +580,21 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 
 <details class="qa"><summary>Diferença entre os módulos 02, 03 e 04?</summary>
 <div class="ans"><span class="q">R:</span> <b>02</b> = dinâmica em malha aberta (resposta livre do airframe a uma deflexão — mostra que o curto-período é pouco amortecido, justificando o controle). <b>03</b> = projeto dos autopilotos (root locus) e teste do 6DOF controlado com comandos de degrau. <b>04</b> = voo homing completo (guiamento + altitude + autopiloto em malha fechada) — é onde o míssil biga.</div></details>
+
+<details class="qa"><summary>Por que booster grão-estrela e sustainer end-burner (e não o contrário)?</summary>
+<div class="ans"><span class="q">R:</span> A geometria define o perfil de empuxo. A <b>estrela</b> tem área de queima alta (queima radialmente pelas pétalas) → <b>empuxo alto e curto</b>, perfeito para acelerar rápido (boost). O <b>end-burner</b> queima só a face (área = seção, constante) → <b>empuxo baixo e longo</b>, perfeito para sustentar o cruzeiro por 228 s. Inverter daria boost fraco e cruzeiro curto — não funcionaria.</div></details>
+
+<details class="qa"><summary>De qual termo das equações nasce o zero de fase não-mínima da aceleração?</summary>
+<div class="ans"><span class="q">R:</span> No numerador de <code>Din_acel</code>, o termo em s² é <code>U·CI·Czd</code> (proporcional a <code>Czd = −dCN_dδ</code>, a força direta do leme). Fisicamente: ao defletir, a <b>força na cauda</b> aparece <b>antes</b> de o momento girar o corpo e gerar a aceleração na direção certa → a resposta começa para o lado "errado" (afundamento). Como esse zero está no semiplano direito, ele <b>limita a banda</b> (não dá para acelerar a malha arbitrariamente sem instabilizar).</div></details>
+
+<details class="qa"><summary>Como o escalonamento de ganhos é aplicado em tempo real no Simulink?</summary>
+<div class="ans"><span class="q">R:</span> Dentro de cada rastreador do autopiloto há blocos <b>Lookup n-D</b> (<code>Procura K_ext</code> / <code>K_int</code>) que recebem a condição instantânea (CG atual, altitude, Mach) e interpolam as tabelas 3D do <code>autopiloto.mat</code> (<code>vet_x_CG × vet_altitude × vet_Mach</code>). É o mesmo que o <code>interpn</code> do <code>ProjContAlt</code>, mas embarcado no modelo — a cada passo o ganho se ajusta ao ponto de voo.</div></details>
+
+<details class="qa"><summary>O que é a constante de navegação proporcional e como ela afeta o miss?</summary>
+<div class="ans"><span class="q">R:</span> É o <code>D.KProp = 3,5</code> (o "N" da PN): o comando de aceleração lateral é <code>≈ N·V·ω_LOS</code>, proporcional à taxa de giro da linha de visada. N entre 3 e 5 é o padrão — alto o bastante para zerar a taxa de LOS antes do impacto (interceptação por colisão), sem amplificar demais ruído. No nosso voo a taxa de LOS é pequena (alvo quase à frente) → comando suave → CPA de 17,9 m.</div></details>
+
+<details class="qa"><summary>Como o mesmo míssil faz cruzeiro rasante e ataque terminal?</summary>
+<div class="ans"><span class="q">R:</span> Pela <b>chave de modo</b> do autopiloto (flag acel/at). No <b>cruzeiro</b>, o Controle de Altitude gera <code>θ_ref</code> e o autopiloto roda em modo <b>atitude</b> (segura o rasante). No <b>terminal</b> (após o seeker travar, t&gt;10 s, alvo próximo), o Guiamento Terminal gera <code>Az_ref/Ay_ref</code> e o autopiloto comuta para modo <b>aceleração</b> (manobra de interceptação). A transição é o "pop-up/mergulho" característico do antinavio.</div></details>
 
 <!-- ============ 15 ============ -->
 <h2 class="sec" id="run">15. Como rodar (passo a passo)</h2>
