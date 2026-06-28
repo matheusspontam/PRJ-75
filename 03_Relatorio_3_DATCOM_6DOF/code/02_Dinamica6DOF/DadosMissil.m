@@ -1,4 +1,4 @@
-﻿function [D] = DadosMissil
+function [D] = DadosMissil
 
 D2R = pi/180;
 cte_grav = 9.8;
@@ -33,7 +33,7 @@ D.HRef = 10;
 
 D.AngSubMax = 20*D2R;
 D.ErrCruz = 0.1;
-D.KAlt = 0.1*D2R;
+D.KAlt = 1*D2R;   % VERIFICAR O MELHOR VALOR
 D.DAltSat = 400;
 
 D.KAtit = 1.6*cte_grav/D2R;
@@ -48,6 +48,6 @@ D.AcelLatMax = 5*cte_grav;
 D.ThetaADmax = 40*pi/180;
 D.OmegaADmax = 40*pi/180;
 D.RSatAD = 500;
-D.REspoleta = 4;
+D.REspoleta = 20;
 
 end
