@@ -334,22 +334,25 @@ for i_cg = 1:length(x_CG)               % posi��o de CG
                 title(['Root locus da malha externa de acelera��o - ' str_ganho_in]);
             end
             
-            % Selecao robusta: a aceleracao tem zero de fase nao-minima, que
-            % limita o ganho por ESTABILIDADE. Ganho de projeto =
-            % min( ganho onde o modo de manobra atinge zeta=0.5 ,
-            %      0.5*ganho de instabilidade )  -> margem de ganho de 6 dB.
-            Kstab = K(end); Kz = K(end); foundz = false;
+            % Selecao robusta por AMORTECIMENTO: a aceleracao tem zero de fase
+            % nao-minima, que limita o ganho. Escolhe-se o MAIOR ganho em que o
+            % par complexo DOMINANTE ainda tem zeta >= zt_alvo (resposta sem
+            % overshoot excessivo), limitado por 0.5*ganho de instabilidade
+            % (margem de ganho 6 dB). zt_alvo=0.6 -> ~5-10% overshoot.
+            zt_alvo = 0.6;
+            Kstab = K(end); KAmp = 0;
             for jj = 2:length(K)
                 p = R_ac_out(:,jj);
                 if any(real(p) > 1e-6); Kstab = K(jj); break; end
-                if ~foundz
-                    pc = p(imag(p)>1e-6 & abs(p)>3 & abs(p)<60);
-                    if ~isempty(pc); [~,id]=max(real(pc));
-                        if -real(pc(id))/abs(pc(id)) < 0.5; Kz = K(jj); foundz = true; end
-                    end
+                pc = p(imag(p)>1e-6);
+                if isempty(pc)
+                    KAmp = K(jj);                          % so polos reais: bem amortecido
+                else
+                    if min(-real(pc)./abs(pc)) >= zt_alvo; KAmp = K(jj); end
                 end
             end
-            KAmp = min(Kz, 0.5*Kstab);
+            KAmp = min(KAmp, 0.5*Kstab);
+            if KAmp <= 0; KAmp = 0.5*Kstab; end
             
             % Define ganho da malha externa de acelera��o
             T_acel_k_ext(i_cg,i_alt,i_mach) = KAmp;
