@@ -8,9 +8,12 @@ D.Mf = 364.9;
 D.DRef = 0.35;
 D.SRef = pi*D.DRef^2/4;
 
-% Propulsao solida estimada no dimensionamento preliminar
-D.TqB = 3.45;
-D.MpB = 126.4;
+% Propulsao solida estimada no dimensionamento preliminar.
+% Booster reduzido para 100 kg (valor do Exocet MM38 real) para adiantar
+% o CG no lancamento e tornar o missil estavel em todo o envelope
+% (PlotGMax sem pontos sem trim), mantendo empuxo e Isp (TqB escalado).
+D.TqB = 2.73;
+D.MpB = 100;
 D.EmpB = 8.22e4;
 
 D.TqS = 223.8;
