@@ -1,3 +1,4 @@
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', '..', '..', '00_Comum'));  % fonte comum (00_Comum)
 % Script para avaliar a manobra máxima em uma dada condição de voo
 % M_aed.mat: Coeficientes aerodinâmicos
 % D = DadosMissil: dados do míssil

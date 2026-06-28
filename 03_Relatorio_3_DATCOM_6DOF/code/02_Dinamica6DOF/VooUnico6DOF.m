@@ -1,3 +1,4 @@
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', '..', '..', '00_Comum'));  % fonte comum (00_Comum)
 %-----------------------------------------------------
 % Programa VooUnico6DOF.m
 % Saída:
