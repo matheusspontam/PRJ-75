@@ -94,6 +94,7 @@
   <a href="#dp-pn">G. Guiamento terminal (PN)</a>
   <a href="#dp-alt">H. Controle de altitude</a>
   <a href="#dp-end">I. Verifica Fim (bingo)</a>
+  <a href="#dp-env">J. Envelope de engajamento</a>
   <h2>Referência</h2>
   <a href="#files">11. Cada arquivo</a>
   <a href="#slx">12. Modelos Simulink</a>
@@ -464,6 +465,25 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <tr><td>Parada: V &lt; Vmin</td><td>V &lt; <code>D.VMin</code> (170 m/s)</td><td>perdeu energia</td></tr>
 </table>
 <p class="muted">O <code>VooUnico6DOF</code> lê esses flags ao fim (<code>if Bingo(end)==1 disp('Bingo')</code>). O <code>RunGuiamentoPlots</code> calcula a distância mínima (CPA) numérica: <b>17,9 m &lt; 20 m → bingo</b>.</p>
+
+<!-- ============ J ============ -->
+<h2 class="sec" id="dp-env">J. Envelope de engajamento — e um bug que encontramos</h2>
+<p>O <code>Envelope6DOF.m</code> varre posições de lançamento (distância × azimute), lança o míssil em cada uma e marca de onde ele biga — a "zona de engajamento". Adaptamos para o nosso caso: <code>load autopiloto.mat</code> (nossos ganhos, não o <code>autopiloto0</code> anti-UAV), cenário sea-skim com navio parado, grade até ~88 km.</p>
+<div class="card bad">
+<h4>Bug encontrado ao validar (o "tá tudo certo?" deu NÃO)</h4>
+<p>O <code>C.Rumo0</code> (rumo pré-programado do cruzeiro, antes de o autodiretor ligar em t=10 s) era calculado <b>uma única vez antes do loop</b>, com a posição inicial (0,0) → <code>Rumo0 = 0</code> para <b>todos</b> os azimutes. O míssil cruzava sempre rumo a 0° (downrange), independentemente de onde o navio estava. A 0–20° ainda acertava; a <b>40°+ ele cruzava para o lado errado</b> e o seeker não recuperava → falsos "miss". Provamos: o mesmo ponto 40°/40 km dá <b>miss 19 m / bingo</b> isolado, mas dava bingo=0 dentro do envelope.</p>
+<p><b>Correção:</b> mover <code>C.Rumo0 = atan2(Ya0−Ym0, Xa0−Xm0)</code> para <b>dentro do loop</b> (recalculado por geometria). Descartamos contaminação de estado (testado — determinístico) e limite de manobra; era o rumo fixo.</p>
+</div>
+<h4>Resultado corrigido</h4>
+<ul>
+<li><b>Omnidirecional</b>: 0°, 45° e 90° dão resultados idênticos (tempos de voo 184/217/240/258 s iguais) — o engajamento é invariante à rotação quando o míssil é lançado apontado ao alvo.</li>
+<li><b>Alcance máximo ~72–76 km</b>: biga a 55/65/72 km, erra a 80 km. Excede o requisito de 70 km.</li>
+<li><b>Limitado pelo sustainer</b>: ele queima até ~232 s; a 72 km o impacto é em 240 s (no limite da queima); a 80 km o motor apaga antes, o míssil desacelera e perde autoridade de controle → miss.</li>
+</ul>
+<figure class="plot">
+  <img src="Plots_Relevantes/09_envelope_antinavio.png" alt="Envelope de engajamento antinavio">
+  <figcaption><b>Plot 09 — Envelope de engajamento</b>: zona de bingo (verde) omnidirecional até ~76 km; misses (×) a 80 km. O limite de alcance é dado pela queima do sustainer.</figcaption>
+</figure>
 
 <!-- ============ 11 ============ -->
 <h2 class="sec" id="files">11. O que cada arquivo faz</h2>
