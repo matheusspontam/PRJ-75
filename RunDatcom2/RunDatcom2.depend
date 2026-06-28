@@ -1,0 +1,16 @@
+# depslib dependency file v1.0
+1619058580 source:c:\carl\codeblocks\rundatcom2\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1619058580 source:\\vmware-host\shared folders\desktop\rundatcom2\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1626977136 source:c:\carl\rundatcom2\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+

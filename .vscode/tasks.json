@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MATLAB: Run current file (batch)",
+      "type": "process",
+      "command": "C:\\Program Files\\MATLAB\\R2026a\\bin\\matlab.exe",
+      "args": [
+        "-batch",
+        "cd('${fileDirname}'); run('${fileBasenameNoExtension}');"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MATLAB: Open desktop in current folder",
+      "type": "process",
+      "command": "C:\\Program Files\\MATLAB\\R2026a\\bin\\matlab.exe",
+      "args": [
+        "-sd",
+        "${fileDirname}"
+      ],
+      "options": {
+        "cwd": "${fileDirname}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "MATLAB: Run ProjRLocus_antiship",
+      "type": "process",
+      "command": "C:\\Program Files\\MATLAB\\R2026a\\bin\\matlab.exe",
+      "args": [
+        "-batch",
+        "cd('${workspaceFolder}\\04_Relatorio_4_Autopilotos\\code'); ProjRLocus_antiship;"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\04_Relatorio_4_Autopilotos\\code"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

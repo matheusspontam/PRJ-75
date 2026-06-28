@@ -1,0 +1,25 @@
+{
+  "MATLAB.installPath": "C:\\Program Files\\MATLAB\\R2026a",
+  "MATLAB.launchMatlab": true,
+  "MATLAB.matlabConnectionTiming": "onStart",
+  "MATLAB.signIn": false,
+  "MATLAB.indexWorkspace": true,
+  "MATLAB.telemetry": false,
+  "[matlab]": {
+    "editor.formatOnSave": false,
+    "files.encoding": "windows1252"
+  },
+  "files.associations": {
+    "*.m": "matlab",
+    "*.slx": "binary",
+    "*.mdl": "binary",
+    "*.mat": "binary"
+  },
+  "files.exclude": {
+    "**/slprj": true,
+    "**/*.slxc": true,
+    "**/*.asv": true,
+    "**/*.aux": true,
+    "**/*.log": true
+  }
+}

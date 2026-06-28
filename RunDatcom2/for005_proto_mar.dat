@@ -1,0 +1,33 @@
+DIM M
+DERIV RAD
+DAMP
+$REFQ     BLAYER=TURB,
+          XCG=1.600000,
+          SCALE=1.0,$
+$AXIBOD   TNOSE=OGIVE,
+          LNOSE=0.2,
+          DNOSE=0.22
+          LCENTR=3.52,
+          DEXIT=0.,$
+$FINSET1  SSPAN=0.11,0.38,
+          CHORD=0.54,0.18,
+          CFOC=0.,0.,
+          XLE=1.84,2.22,
+          NPANEL=4.,
+          PHIF= 0.,90.,180.,270.,$
+$FINSET2  SSPAN=0.11,0.26,
+          CHORD=0.26,0.08,
+          CFOC=1.,1.,
+          XLE=3.48,3.66,
+          NPANEL=4.,
+          PHIF= 0.,90.,180.,270.,$
+$DEFLCT   DELTA2=0.,10.000000,0.,-10.000000,
+          XHINGE=2.22,3.66,$
+$FLTCON   NALPHA=13.,
+          ALPHA=-20.,-16.,-12.,-8.,-4.,-2.,0.,2.,4.,8.,12.,16.,20.,
+          NMACH=4.,
+          MACH=0.1,0.6,0.8,0.9,
+          ALT=0.,0.,0.,0.,0.,$
+PRINT AERO HINGE
+SAVE
+NEXT CASE

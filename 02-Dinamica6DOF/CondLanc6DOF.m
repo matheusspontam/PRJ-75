@@ -14,7 +14,7 @@ cte_grav = 9.8;
 D2R = pi/180;
 
 % Tempo de máximo de simulação
-C.Tfim = 8;
+C.Tfim = 80;
 
 % Entradas de simulação
 C.DeltaY = 1*D2R;
