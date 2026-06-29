@@ -267,6 +267,11 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
 <p>O curto-período é <b>muito pouco amortecido (ξ ≈ 0,08)</b> — em malha aberta (módulo 02), uma deflexão excita uma oscilação que demora a decair, e cuja <b>frequência sobe com a velocidade</b> (ωn ∝ √q). <span class="muted">É exatamente isso que justifica a malha interna de girômetro do autopiloto (leva ξ para ~1).</span> A aceleração tem ainda um <b>zero de fase não-mínima</b> (~+13,7 rad/s) → o degrau de Az começa com um pequeno "afundamento" antes de subir, e isso limita a banda. A atitude tem um <b>zero de incidência lento</b> (míssil pesado) → cauda lenta na resposta de θ.</p>
 </div>
 
+<figure class="plot">
+  <img src="Plots_Relevantes/alphaxdelta.png" alt="Resposta livre do airframe - alfa, beta, delta">
+  <figcaption><b>Resposta livre do airframe (malha aberta, módulo 02)</b> a um trem de degraus de leme (δY/δZ, pulsos de 1°): α e β <b>oscilam e amortecem devagar</b> (curto-período pouco amortecido, ξ≈0,08), com a frequência subindo conforme o míssil acelera. É a evidência de que a célula "pelada" precisa do autopiloto.</figcaption>
+</figure>
+
 <h3 id="sinal">7.1 Convenção de sinal — o ponto que mais confunde</h3>
 <div class="card warn">
 <p>O nosso <code>Din_q</code> tem <b>ganho NEGATIVO</b> (oposto ao template anti-UAV original do prof). Sem corrigir, o autopiloto realimenta com o sinal errado e instabiliza/comando invertido. Duas correções, que precisam coexistir:</p>
@@ -318,6 +323,11 @@ Coef2Mat('Coef_mansup.dat')   <span class="c">% gera M_aed.mat (dados.delta/mach
     <figcaption><b>Plot 08 — Degrau de 5 g</b>: a Simulação (azul) atinge 5 g mais rápido que o Requisito de 0,5 Hz (preto) → manobra + banda atendidas.</figcaption>
   </figure>
 </div>
+
+<figure class="plot">
+  <img src="Plots_Relevantes/autoPiloto.png" alt="Autopiloto comandado x executado no 6DOF">
+  <figcaption><b>Autopiloto no 6DOF completo (<code>plot6DOF</code>, comandado × executado)</b>: θ e ψ seguem o comando; as acelerações Y/Z seguem os degraus comandados (com o overshoot/undershoot já discutidos). Comandado (azul) e executado (laranja) praticamente coincidem — confirma que o autopiloto segue o comando no modelo não-linear, não só na FT linear (plot 04).</figcaption>
+</figure>
 
 <!-- ============ 9 ============ -->
 <h2 class="sec" id="alt">9. Controle de altitude — sea-skimming</h2>
