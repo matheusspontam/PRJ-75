@@ -1,0 +1,37 @@
+\section{Reproducibility}
+
+Each stage is run in order, validating the output of one before moving to the next. The required tools are MATLAB with Simulink, the Control System Toolbox, the point-mass and 6DOF folders, and the DATCOM workflow (\texttt{RunDatcom2}, \texttt{Coef2Mat.m}).
+
+\begin{table}[H]
+\centering
+\small
+\caption{Execution sequence to reproduce the delivered results.}
+\begin{tabular}{p{0.03\textwidth}p{0.24\textwidth}p{0.30\textwidth}p{0.33\textwidth}}
+\toprule
+\# & Stage & File / action & Output / check \\
+\midrule
+1  & Sizing & \texttt{dimensionamento\_exocet.m} + \texttt{SimX.mdl} & mass, length, booster/sustainer, range and velocity plot \\
+2  & Point-mass guidance & \texttt{run\_mansup\_cases.m} & trajectories, switching times, miss distances \\
+3  & DATCOM geometry & write \texttt{for005\_mansup.dat} & DATCOM input at the common moment reference \\
+4  & DATCOM processing & \texttt{RunDatcom2} $\rightarrow$ \texttt{Coef2Mat} & \texttt{Coef\_mansup.dat}, \texttt{M\_aed.mat} \\
+5  & Coefficient plots & \texttt{PlotCmCN.m}, \texttt{PlotCD.m}, \texttt{PlotCoef.m} & aerodynamic coefficient figures \\
+6  & Max maneuver & \texttt{PlotGMax.m} & trim $\leq\pm 20^\circ$ and $\geq 5g$, all phases \\
+7  & 6DOF open loop & \texttt{VooUnico6DOF.m} & short-period characterization \\
+8  & Autopilot design & \texttt{ProjRLocus.m} & \texttt{autopiloto.mat}, gains, root loci, steps \\
+9  & Altitude control & tune $K_{alt}$ in \texttt{ProjContAlt.m} & stable sea-skim ($\approx 26~\text{m}$) \\
+10 & Full homing flight & \texttt{RunGuiamentoFull.m} (runs \texttt{GuiamentoControle.slx}) & trajectory, time series, miss $17.9~\text{m}$ \\
+11 & Engagement envelope & \texttt{Envelope6DOF.m} & hit zone, $\approx$ omnidirectional, $72$--$76~\text{km}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Consistency Checks}
+
+Three checks keep the results comparable. First, the sizing values (diameter, length, mass, propulsion) must match the DATCOM geometry and the CG/inertia model. Second, DATCOM and 6DOF must share the same moment reference; the model transfers moments from the DATCOM reference to the real CG, so the CG may differ without re-running DATCOM:
+
+\begin{lstlisting}[language=Matlab]
+Aer = load('M_aed.mat');
+D.CRM = [-Aer.dados.XCG  0  0]';
+\end{lstlisting}
+
+Third, the missile is edited only in \texttt{00\_Comum}, which every stage folder forwards to.

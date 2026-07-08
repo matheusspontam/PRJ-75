@@ -1,0 +1,14 @@
+\section{Conclusions}
+
+All requirements were met and verified in a closed-loop 6DOF simulation:
+
+\begin{itemize}
+    \item miss $=17.9~\text{m}<20~\text{m}$ fuze $\rightarrow$ BINGO;
+    \item Mach $0.90$ cruise held (sustainer sized for the trim drag);
+    \item terminal maneuver $\approx 5.6g\geq 5g$;
+    \item bandwidth $0.7$--$3.6~\text{Hz}\geq 0.5~\text{Hz}$;
+    \item trim within $\pm 20^\circ$ in every CG phase;
+    \item engagement envelope up to $72$--$76~\text{km}>70~\text{km}$, nearly omnidirectional.
+\end{itemize}
+
+The main lessons learned are: size the sustainer for the trim drag, not for $\alpha=0$; the $\delta\rightarrow q$ sign needs explicit correction; gain scheduling is essential across the full envelope; the \texttt{Rumo0} bug affected the entire envelope until fixed; and the \texttt{00\_Comum} single source of truth is what kept the whole chain self-consistent. The complete chain, from sizing to guidance, is reproducible and self-consistent.

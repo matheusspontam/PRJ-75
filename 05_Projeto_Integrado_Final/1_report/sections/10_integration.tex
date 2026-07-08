@@ -1,0 +1,19 @@
+\section{Integrated Interpretation and Course-Code Reuse}
+
+The stages are successive layers of the same preliminary missile.
+
+\begin{itemize}
+    \item \textbf{Preliminary propulsion:} the sizing structure and \texttt{SimX} verification were retained; only the missile numbers changed.
+    \item \textbf{Point-mass guidance:} the MANSUP Simulink model was the first guidance prototype (pre-programmed turn plus terminal switching) and remains the conceptual origin of the guidance logic now embedded in the 6DOF model.
+    \item \textbf{DATCOM:} the \texttt{DATCOMreader}/\texttt{Coef2Mat} chain was retained; only the geometry input was rebuilt for the selected missile.
+    \item \textbf{6DOF and autopilot:} the course dynamic model and root-locus method were reused with the new missile data, CG/inertia and aerodynamic matrix.
+    \item \textbf{Guidance and control:} the anti-UAV \texttt{GuiamentoControle.slx} framework was adapted into a full antiship engagement, with sea-skim altitude hold, proportional navigation projected onto the body axes with gravity compensation, and an engagement envelope.
+\end{itemize}
+
+\subsection{Single Source of Truth}
+
+All missile data live in \texttt{00\_Comum/DadosMissilComum.m} and \texttt{DadosCGInerciaComum.m}; every stage folder calls them through a forwarder, guaranteeing that dynamics, autopilot and guidance refer to the same physical missile.
+
+\subsection{Integration Status and Limitations}
+
+The previous integration gap is now closed: the point-mass guidance and the 6DOF/autopilot models, previously in separate frameworks, are unified in a single closed-loop 6DOF mission (\texttt{GuiamentoControle.slx}). What remains preliminary is that propulsion, structural masses and aerodynamic geometry are engineering estimates, and the autopilot is verified at representative scheduling points together with a full homing flight and an engagement envelope, rather than over an exhaustively certified envelope. Within that scope the data flow is consistent: geometry, mass properties, aerodynamic coefficients and control gains all refer to the same missile configuration.

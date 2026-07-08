@@ -1,0 +1,43 @@
+\section{Control and Guidance}
+
+\subsection{Altitude Control --- Sea-Skimming}
+
+Low-level flight is a proportional loop from altitude error to attitude command; the resulting $\theta_{ref}$ is tracked by the attitude autopilot:
+\[
+    \theta_{ref}=\operatorname{sat}_{\pm 20^\circ}\!\big[K_{alt}\,(H_{ref}-h)\big].
+\]
+The altitude gain is $K_{alt}=1^\circ/\text{m}$ (tuned; below this value the missile dives), with a reference $H_{ref}=10~\text{m}$ and a saturation on the climb angle. A proportional law is enough here because the inner attitude autopilot already provides the damping and the steady tracking: the altitude loop only has to bias the nose up or down, and the saturation prevents an absurd command (for instance, ``dive $90^\circ$'' just because the missile is momentarily too high). The climb-angle limit also keeps the trajectory shallow, which is what makes the flight sea-skimming rather than a series of dives and climbs.
+
+The result is a three-level cascade: altitude control feeds the attitude autopilot, which in turn relies on the rate-gyro loop. In flight the skim altitude settles at $\approx 26~\text{m}$ during cruise, safely below the ship's radar horizon. During the first $T_{Trav}$ the fins are locked ($\delta=0$) and $\theta_{ref}$ is forced to zero, since the missile is still accelerating on the booster and has neither the airspeed nor the control authority to maneuver.
+
+\subsection{Terminal Guidance --- Proportional Navigation}
+
+In the terminal phase the missile uses proportional navigation: the commanded acceleration is proportional to the line-of-sight (LOS) rotation rate, projected onto the body axes and gravity-compensated:
+\[
+    \vec a_{cmd}\approx
+    \underbrace{N\,V\,\dot\sigma_{LOS}}_{\text{PN law}}\;\cdot\;
+    \underbrace{\cos\theta_{AD},\,\cos\psi_{AD}}_{\text{body-axis projection}}\;+\;
+    \vec g_{comp}.
+\]
+
+The chain is: the seeker (AD Ideal) measures LOS angles and rates ($\operatorname{atan2}$ of the relative position; cross product over range for the rate); the terminal guidance forms $N\,V\,\dot\sigma_{LOS}$, projects it onto the body axes and adds the gravity-compensation term (gravity rotated into the body frame through the DCM); the autopilot in acceleration mode turns the $A_z/A_y$ references into fin deflections. The gravity-compensation term is what keeps the missile from sagging during the terminal maneuver --- a piece the flat point-mass projection did not require but the true-geometry 6DOF flight does.
+
+\begin{table}[H]
+\centering
+\caption{Guidance and seeker parameters.}
+\begin{tabular}{lc}
+\toprule
+Parameter & Value \\
+\midrule
+Navigation constant $N$ & $3.5$ \\
+Seeker turn-on time & $t=10~\text{s}$ \\
+Seeker gimbal cone & $\pm 40^\circ$ \\
+LOS-rate limit & $\pm 40^\circ/\text{s}$ \\
+Tracking-range saturation & $500~\text{m}$ \\
+Proximity fuze radius & $20~\text{m}$ \\
+Minimum speed $V_{min}$ & $170~\text{m/s}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Before seeker turn-on the missile flies pre-programmed by heading (\texttt{Rumo0}) and altitude. The stop conditions are bingo, ground/sea impact, target overrun (miss), and speed below $V_{min}$.

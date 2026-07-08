@@ -1,0 +1,18 @@
+\section{Modifications From the Reference Model}
+
+The project started from the coursework anti-drone / anti-UAV missile (laser-guided, air-to-air) and adapted it to the antiship role. The four main modifications are summarized below.
+
+\begin{table}[H]
+\centering
+\caption{Main modifications and their motivation.}
+\begin{tabular}{p{0.30\textwidth}p{0.30\textwidth}p{0.32\textwidth}}
+\toprule
+Problem & Cause & Solution \\
+\midrule
+Missile decelerated and dived & Sustainer sized for $C_D$ at $\alpha=0$ (under-sized) & $F_S$ = cruise drag with trim ($C_D\approx 0.58$), holds Mach $0.90$ \\
+Gmax curve did not close at launch & Rearward CG ($-2.75~\text{m}$), trim $\approx-21^\circ$, outside $\pm 20^\circ$ & CG forward ($-2.65~\text{m}$, $1.1$ cal), trim $-18^\circ$, all phases close \\
+Command versus executed inverted & $\delta\rightarrow q$ with opposite sign to the reference model & Sign inversion in the design and in the simulation \\
+$A_z$ step over-oscillated; false envelope misses & Acceleration gain too aggressive; fixed cruise heading & Gain with $\zeta\geq 0.6$; heading recomputed per geometry \\
+\bottomrule
+\end{tabular}
+\end{table}

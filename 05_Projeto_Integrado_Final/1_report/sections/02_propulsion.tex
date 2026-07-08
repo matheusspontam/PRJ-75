@@ -1,0 +1,39 @@
+\section{Propulsion --- Two-Stage Solid}
+
+Propulsion is solid only, in two pulses (\texttt{dimensionamento\_exocet.m}, parameters in \texttt{DadosMissilComum.m}).
+
+\begin{itemize}
+    \item \textbf{Booster --- star grain.} High burn-area/volume ratio gives high, short thrust; it takes the missile from rest to $\approx$ Mach $0.93$. $M_{pB}=125~\text{kg}$, $F_B\approx 67.4~\text{kN}$, $T_{qB}=4~\text{s}$, $I_{sp}\approx 220~\text{s}$.
+    \item \textbf{Sustainer --- end-burner grain.} Burns only on the face (constant area) giving low, long thrust; it holds cruise for $\approx 229~\text{s}$. $M_{pS}=330~\text{kg}$, $F_S=3.25~\text{kN}$, $T_{qS}=228.6~\text{s}$, $I_{sp}\approx 240~\text{s}$.
+\end{itemize}
+
+\subsection{Critical Decision --- Sizing the Sustainer}
+
+The classic mistake is to size the sustainer for the drag at $\alpha=0$ ($C_D\approx 0.42\Rightarrow F_S\approx 2.3~\text{kN}$). But the missile cruises at a \emph{trim} angle of attack, where the real drag rises to $C_{D,\text{trim}}\approx 0.58$. Sized for $\alpha=0$, thrust $<$ drag, and the missile decelerates and dives. The sustainer is therefore sized for the cruise drag with lift (trim):
+
+\[
+    F_S=\bar q\,S\,C_{D,\text{trim}},\qquad
+    \bar q=\tfrac12\rho V^2,\qquad
+    V=0.9\,a,\qquad
+    M_{pS}=\frac{F_S\,T_{qS}}{I_{sp}\,g}.
+\]
+
+With $C_{D,\text{trim}}\approx 0.58$ this gives $F_S=3.25~\text{kN}$: thrust equals drag at Mach $0.90$ and cruise holds.
+
+\begin{table}[H]
+\centering
+\caption{Thrust and propellant schedule \texttt{D.VProp} $=[t~~F~~M_{prop}]$.}
+\begin{tabular}{ccc}
+\toprule
+$t$ (s) & Thrust (N) & $M_{prop}$ (kg) \\
+\midrule
+0.0   & 67\,380 & 455 \\
+4.0   & 67\,380 & 330 \\
+4.1   & 3\,250  & 330 \\
+232.7 & 3\,250  & 0 \\
+232.8 & 0       & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The launch mass is $M_0\approx 930~\text{kg}$ (empty $475~\text{kg}$ plus propellant $455~\text{kg}$), and the maximum simulation time is set past the sustainer burnout.
