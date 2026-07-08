@@ -2,6 +2,15 @@
 
 Este repositório reúne os relatórios, códigos, modelos e resultados gerados ao longo do projeto de PRJ-75. A organização foi feita por etapa de trabalho, mantendo separados os relatórios, os códigos usados e as figuras/resultados.
 
+## 📄 Relatório final
+
+O **relatório integrado final** (em inglês, projeto 6DOF em malha fechada) está em:
+
+> **[`05_Projeto_Integrado_Final/1_report/Relatorio_PRJ75_Exame.pdf`](05_Projeto_Integrado_Final/1_report/Relatorio_PRJ75_Exame.pdf)**
+
+Fontes LaTeX na mesma pasta: `main.tex` + `sections/` (13 seções) + `figures/`.
+Para recompilar: `pdflatex main.tex` (2×).
+
 ## Estrutura
 
 ```text
@@ -100,17 +109,14 @@ Objetivo: consolidar todos os relatórios em uma visão única do projeto e prep
 
 Conteúdo:
 
-- `report/`: relatório integrado completo em inglês.
-- `presentation/`: apresentação em HTML, em português, com slides navegáveis.
-- `oral_exam_prep/`: guia de preparação, 40 perguntas e respostas para arguição.
+- `1_report/`: relatório integrado final completo em inglês (LaTeX + PDF).
+- apresentação Beamer em `../Apresentacao/apresentacao.tex` e HTML em `../Dominio_Codigo_Missil_Antinavio.html`.
 
 Arquivos principais:
 
-- `report/main.pdf`
-- `presentation/index.html`
-- `oral_exam_prep/guia_preparacao.md`
-- `oral_exam_prep/40_perguntas.md`
-- `oral_exam_prep/40_respostas.md`
+- **`1_report/Relatorio_PRJ75_Exame.pdf`** — relatório final (PDF).
+- `1_report/main.tex` + `1_report/sections/` — fontes LaTeX.
+- `1_report/figures/` — figuras (plots de resultado + modelo Simulink).
 
 ## Fluxo de reprodução
 
